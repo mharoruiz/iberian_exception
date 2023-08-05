@@ -114,8 +114,8 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   log_info("Loading data")
   # Import day-ahead auction data
   daa_df = read_csv("data/DAA.csv", show_col_types = FALSE)
-  # Import CPI at constant taxes from Eurostat
-  hicp_df_raw = read_csv("data/hicp_ct.csv", show_col_types = FALSE)
+  # Import CPI data at constant taxes from Eurostat
+  hicp_df_raw = get_eurostat("prc_hicp_cind", time_format = "date")
 
   # Raise error
   not_supported = NULL

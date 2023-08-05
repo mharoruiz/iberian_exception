@@ -73,8 +73,8 @@ plot_weightedCPI = function(df, treated_unit, plot_ci = FALSE) {
       time = year(date)
     ) |>
     select(date, outcome, ate, ate_u, ate_l, time)
-  # Import Eurostat CPI weights dataframe
-  w_raw = read_csv("data/hicp_weights.csv", show_col_types = FALSE)
+  # Import CPI weights data from Eurostat
+  w_raw = get_eurostat("prc_hicp_inw", time_format = "date")
   # Filter and process weights
   w = w_raw |>
     filter(geo == treated_unit) |>

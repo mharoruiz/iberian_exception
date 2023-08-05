@@ -31,6 +31,7 @@ estimate_sc = function(
   library(tidyr)
   library(stringr)
   library(lubridate)
+  library(eurostat)
   library(logger)
   library(scinference)
 
@@ -81,8 +82,8 @@ estimate_sc = function(
   # Import day-ahead auction data
   log_info("Loading data")
   daa_df = read_csv("data/DAA.csv", show_col_types = FALSE)
-  # Import CPI at constant taxes
-  hicp_df_raw = read_csv("data/hicp_ct.csv", show_col_types = FALSE)
+  # Import CPI data at constant taxes from Eurostat
+  hicp_df_raw = get_eurostat("prc_hicp_cind", time_format = "date")
 
   # Raise error
   not_supported = NULL
