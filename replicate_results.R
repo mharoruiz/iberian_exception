@@ -6,12 +6,16 @@
 #' This project lives in an renv reproducible environment, which uses R version
 #' 4.2.3. Note that some of the dependencies for certain packages may not be 
 #' available in different R versions. Consider adjusting your R version 
-#' accordingly before executing this file. 
+#' accordingly to successfully execute this file. 
 #' 
-#' In order to setup the virtual environment in your local machine. 
+#' In order to setup the virtual environment in your local machine, type the 
+#' following commands in the R console:
+#' library(renv) # install.packages("renv") if necessary
+#' renv::activate()
+#' renv::restore()
 #' 
 #' To run the script, first restart your R session by pressing Ctrl/Cmd + Shift 
-#' + 0 followed by Ctrl/Cmd + Shift + S to execute the file. 
+#' + 0 followed by Ctrl/Cmd + Shift + Return to execute the file as a whole. 
 #'
 
 # Import functions
