@@ -8,4 +8,4 @@ In order to set up the virtual environment in your local machine, type the follo
 
     library(renv) # install.packages("renv") if necesasry
     renv::activate()
-    revn::restore()
+    renv::restore()
