@@ -4,9 +4,7 @@
 #' estimation of the effect on inflation. 
 #' 
 #' This project lives in an renv reproducible environment, which uses R version
-#' 4.2.3. Note that some of the dependencies for certain packages may not be 
-#' available in different R versions. Consider adjusting your R version 
-#' accordingly to successfully execute this file. 
+#' 4.2.3. re
 #' 
 #' In order to setup the virtual environment in your local machine, type the 
 #' following commands in the R console:
@@ -44,7 +42,7 @@ estimate_sc(
   outcomes = c("DAA", "CP00", "NRG", "TOT_X_NRG"),
   T0s = c(89, 108, 108, 108),
   precision = 0.01, # Set precision higher to reduce run-time
-  compute_ci = FALSE,
+  compute_ci = TRUE,
   save_csv = TRUE
 )
 # Estimate p-values for full post-treatment period

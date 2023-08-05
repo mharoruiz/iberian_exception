@@ -74,7 +74,7 @@ plot_weightedCPI = function(df, treated_unit, plot_ci = FALSE) {
     ) |>
     select(date, outcome, ate, ate_u, ate_l, time)
   # Import CPI weights data from Eurostat
-  w_raw = get_eurostat("prc_hicp_inw", time_format = "date")
+  w_raw = get_eurostat("prc_hicp_inw", time_format = "num")
   # Filter and process weights
   w = w_raw |>
     filter(geo == treated_unit) |>
@@ -113,6 +113,7 @@ plot_weightedCPI = function(df, treated_unit, plot_ci = FALSE) {
     filter(outcome != "CP00") |>
     group_by(date) |>
     summarise_at(c("w_ate", "w_ate_u", "w_ate_l"), sum) |>
+    ungroup() |>
     mutate(outcome = "NRG(w)+CP00xNRG(w)") |>
     rbind(sc_w_cp00) |>
     mutate(subplot = "CP00 vs NRG(w)+CP00xNRG(w)")

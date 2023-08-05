@@ -24,7 +24,9 @@
 #' outcomes and T0s, either as a csv or as a output.
 #'
 estimate_sc = function(
-    outcomes, T0s, precision = .1, compute_ci = TRUE, save_csv = TRUE) {
+    outcomes, T0s, precision = .1, compute_ci = TRUE, save_csv = TRUE
+    ) 
+  {
   # Attach required packages
   library(readr)
   library(dplyr)
@@ -79,9 +81,10 @@ estimate_sc = function(
   # Define treatment and end date
   treatment_date = as.Date("2022-06-01")
   end_date = as.Date("2023-06-01")
-  # Import day-ahead auction data
+  
   log_info("Loading data")
-  daa_df = read_csv("data/DAA.csv", show_col_types = FALSE)
+  # Import day-ahead auction data
+  daa_df_raw = read_csv("data/DAA.csv", show_col_types = FALSE)
   # Import CPI data at constant taxes from Eurostat
   hicp_df_raw = get_eurostat("prc_hicp_cind", time_format = "date")
 
@@ -112,6 +115,11 @@ estimate_sc = function(
     }
   }
 
+  # Preprocess day-ahead auction data
+  daa_df = daa_df_raw |>
+    group_by(country) |>
+    filter(!any(is.na(DAA))) |>
+    ungroup()
   # Preprocess CPI data
   hicp_df = hicp_df_raw |>
     mutate(

@@ -113,7 +113,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
 
   log_info("Loading data")
   # Import day-ahead auction data
-  daa_df = read_csv("data/DAA.csv", show_col_types = FALSE)
+  daa_df_raw = read_csv("data/DAA.csv", show_col_types = FALSE)
   # Import CPI data at constant taxes from Eurostat
   hicp_df_raw = get_eurostat("prc_hicp_cind", time_format = "date")
 
@@ -143,6 +143,12 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
       )
     }
   }
+  
+  # Preprocess day-ahead auction data
+  daa_df = daa_df_raw |>
+    group_by(country) |>
+    filter(!any(is.na(DAA))) |>
+    ungroup()
   # Preprocess CPI data
   hicp_df = hicp_df_raw |>
     mutate(
