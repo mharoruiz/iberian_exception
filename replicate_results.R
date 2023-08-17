@@ -41,7 +41,7 @@ set.seed(51231)
 estimate_sc(
   outcomes = c("DAA", "CP00", "NRG", "TOT_X_NRG"),
   T0s = c(89, 108, 108, 108),
-  precision = 0.01, # Set precision higher to reduce run-time
+  precision = 0.01, # Set precision to a higher number to reduce run-time
   compute_ci = TRUE,
   save_csv = TRUE
 )
