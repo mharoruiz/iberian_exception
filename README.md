@@ -6,7 +6,7 @@ This project lives in an `renv` reproducible environment which uses R version 4.
 
 To set up the virtual environment and replicate the results, follow these instructions:
 
-1. Open the `Replication.Rproj` file execute the following commands:
+1. Open the `replication.Rproj` file execute the following commands:
 
         library(renv) # install.packages("renv") if necessary
         renv::restore()
