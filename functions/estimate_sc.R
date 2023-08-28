@@ -1,9 +1,9 @@
 #'
-#' Estimation: Twelve Months After the Iberian exception.
+#' Estimation of synthetic control units.
 #'
-#' @description This function reproduces the results from Haro-Ruiz & Schult
-#' (2023), which estimates the effects of the Iberian Exception mechanism on
-#' a different price outcomes.
+#' @description This function reproduces the results from Haro-Ruiz, M.,  
+#' Shcult C., and Wunder, C. (2023), which estimates the effects of the Iberian 
+#' Exception mechanism on a different price outcomes.
 #'
 #' The effect of the intervention is estimated via synthetic controls for
 #' Spain and Portugal given outcome variables and length of pre-treatment
@@ -14,13 +14,13 @@
 #' as outcomes.
 #' @param precision A float between 0 and 1 which defines the step of the grid-
 #' search space to find confidence intervals.
-#' @param compute_ci logical to compute 90 %confidence intervals or not. If
+#' @param compute_ci Boolean to compute 90 %confidence intervals or not. If
 #' set to TRUE, run-time will increase significantly. Default: FALSE.
-#' @param save_csv logical to save results as csv file. The name of the file
+#' @param save_csv Boolean to save results as csv file. The name of the file
 #' will be set depending on the precision. For example, setting precision=.01
-#' will return a file named sc_trends_01.csv. Default: TRUE.
+#' will return a file named sc_series_01.csv. Default: TRUE.
 #'
-#' @return A dataframe with synthetic and observed trends for the given
+#' @return A dataframe with synthetic and observed series for the given
 #' outcomes and T0s, either as a csv or as a output.
 #'
 estimate_sc = function(
@@ -28,20 +28,21 @@ estimate_sc = function(
     ) 
   {
   # Attach required packages
-  library(readr)
-  library(dplyr)
-  library(tidyr)
-  library(stringr)
-  library(lubridate)
-  library(eurostat)
-  library(logger)
-  library(scinference)
+  require(tidyverse)
+  #library(readr)
+  #library(dplyr)
+  #library(tidyr)
+  #library(stringr)
+  #library(lubridate)
+  require(eurostat)
+  require(logger)
+  require(scinference)
 
   # Raise errors
   if (length(outcomes) != length(T0s)) {
     stop(
       sprintf(
-        "T0s must be the same size as outcomes. Got %s outcomes and %s T0s.",
+        "T0s must be the same length as outcomes. Got %s outcomes and %s T0s.",
         length(outcomes),
         length(T0s)
       )
@@ -70,7 +71,7 @@ estimate_sc = function(
   }
 
   # Import function to compute synthetic controls
-  source("utils/sc.R")
+  source("functions/sc.R")
   # Define treated and control units
   treated_units = c("ES", "PT")
   control_units = c(
@@ -84,9 +85,15 @@ estimate_sc = function(
   
   log_info("Loading data")
   # Import day-ahead auction data
-  daa_df_raw = read_csv("data/DAA.csv", show_col_types = FALSE)
-  # Import CPI data at constant taxes from Eurostat
-  hicp_df_raw = get_eurostat("prc_hicp_cind", time_format = "date")
+  daa_df_raw = read_csv("data/day_ahead_price.csv", show_col_types = FALSE)
+  # Import CPI at constant taxes
+  if (file.exists("data/cpi_index.csv")) {
+    hicp_df_raw = read_csv("data/cpi_index.csv", show_col_types = FALSE)
+  } else {
+    hicp_df_raw = get_eurostat("prc_hicp_cind", time_format="date")
+    log_info("Saving CPI data to data/cpi_index.csv")
+    write_csv(hicp_df_raw, "data/cpi_index.csv")
+  }
 
   # Raise error
   not_supported = NULL
@@ -148,7 +155,7 @@ estimate_sc = function(
     pivot_wider(names_from = outcome, values_from = values) |>
     arrange(country, date)
   # Create empty data containers to store results
-  agg_trends = NULL
+  agg_series = NULL
 
   # One iteration for each treated unit
   for (tu in treated_units) {
@@ -208,8 +215,7 @@ estimate_sc = function(
         lsei_type = 2
       )
       gaps = estimate$u.hat
-      # Approximate range of CI from difference between observed and synthetic
-      # trends
+      # Approximate range of CI from difference between observed and synthetic series
       if (compute_ci == TRUE) {
         sf = nchar(str_split(precision, "\\.")[[1]][2])
         max_gap = round(max(gaps[seq(T0 + 1, T01), ]), sf)
@@ -282,7 +288,7 @@ estimate_sc = function(
         }
       }
       # Store results
-      trends = data.frame(
+      series = data.frame(
         date = time_range,
         obs = Y1,
         synth = estimate$Y0.hat,
@@ -293,7 +299,7 @@ estimate_sc = function(
         outcome = out,
         treated = tu
       )
-      agg_trends = rbind(agg_trends, trends)
+      agg_series = rbind(agg_series, series)
     }
   }
 
@@ -305,7 +311,7 @@ estimate_sc = function(
       suffix = ""
     }
     file_path = sprintf(
-      "results/sc_trends%s.csv",
+      "results/sc_series%s.csv",
       suffix
     )
     log_info(
@@ -314,8 +320,8 @@ estimate_sc = function(
         file_path
       )
     )
-    write_csv(agg_trends, file_path)
+    write_csv(agg_series, file_path)
   } else {
-    return(agg_trends)
+    return(agg_series)
   }
 }

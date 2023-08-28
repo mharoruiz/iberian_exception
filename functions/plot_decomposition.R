@@ -1,28 +1,31 @@
 #'
-#' Weighted CPI plots: Twelve Months After the Iberian Exception.
+#' CPI decomposition plots.
 #'
-#' @description This function replicates figure 3 and A3 of Haro-Ruiz, M. and
-#' Schult C. (2023), which shows the dissagreated effect of the Iberian
-#' exception mechanism between energy and non-energy inflation for Spain and
-#' Portugal.
+#' @description This function replicates figure 3 and A3 of Haro-Ruiz, M.,
+#' Schult C., and Wunder, C. (2023), which shows the disaggreated effect of the 
+#' Iberian exception mechanism between energy and non-energy inflation for Spain 
+#' and Portugal.
 #'
 #' @param df A dataframe returned by estimate_sc().
 #' @param treated_unit "ES" to plot results for Spain or "PT" to plot results
 #' for Portugal.
+#' @param plot_ci logical indicating whether to plot condiference intervals or 
+#' not
 #'
-#' @return A plot showing the dissagreated effect of the Iberian exception
-#' mechanism between energy and non-energy inflation for a given treated unit.
+#' @return A plot showing the effect of the IbEx on the overall inflation rate 
+#' decomposed between energy and non-energy inflation.
 #'
-plot_weightedCPI = function(df, treated_unit, plot_ci = FALSE) {
+plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
   # Attach required packages
-  library(readr)
-  library(dplyr)
-  library(lubridate)
-  library(ggplot2)
+  require(tidyverse)
+  #library(readr)
+  #library(dplyr)
+  #library(lubridate)
+  #library(ggplot2)
 
   # Raise errors
   expected_colnames = c(
-    "date", "outcome", "obs", "gaps", "upper_ci", "lower_ci", "treated"
+    "date", "outcome", "gaps", "treated"
   )
   missing_colnames = !(expected_colnames %in% colnames(df))
   if (sum(missing_colnames) != 0) {
@@ -36,16 +39,30 @@ plot_weightedCPI = function(df, treated_unit, plot_ci = FALSE) {
       )
     )
   }
-  if (
-    plot_ci &
-      (
-        sum(is.na(df$upper_ci)) == length(df$upper_ci) |
-          sum(is.na(df$lower_ci)) == length(df$lower_ci)
-      )
-  ) {
-    stop(
-      "The dataframe provided contains empty lower_ci/upper_ci columns. Set plot_ci=FALSE to suppress this message."
+  if (plot_ci) {
+    expected_colnames_ci = c(
+      "upper_ci", "lower_ci"
     )
+    missing_colnames_ci = !(expected_colnames_ci %in% colnames(df))
+    if (sum(missing_colnames_ci) != 0) {
+      stop(
+        sprintf(
+          "Variables %s must be columns in provided dataframe if plot_ci=TRUE.",
+          paste(
+            expected_colnames_ci[which(missing_colnames_ci)],
+            collapse = ", "
+          )
+        )
+      )
+    }
+    if (
+      sum(is.na(df$upper_ci)) == length(df$upper_ci) |
+      sum(is.na(df$lower_ci)) == length(df$lower_ci)
+    ) {
+      stop(
+        "The dataframe provided contains empty lower_ci/upper_ci columns. Set plot_ci=FALSE to suppress this message."
+      )
+    }
   }
   if (treated_unit != "ES" & treated_unit != "PT") {
     stop(
@@ -67,27 +84,27 @@ plot_weightedCPI = function(df, treated_unit, plot_ci = FALSE) {
       )) |>
     mutate(
       date = as.Date(date),
-      ate = gaps / obs * 100,
-      ate_u = upper_ci / obs * 100,
-      ate_l = lower_ci / obs * 100,
-      time = year(date)
+      year = year(date)
     ) |>
-    select(date, outcome, ate, ate_u, ate_l, time)
-  # Import CPI weights data from Eurostat
-  w_raw = get_eurostat("prc_hicp_inw", time_format = "num")
+    select(date, outcome, gaps, year)
+  # Import CPI weights weights data
+  if (file.exists("data/cpi_weights.csv")) {
+    w_raw = read_csv("data/cpi_weights.csv", show_col_types = FALSE)
+  } else {
+    w_raw = get_eurostat("prc_hicp_inw", time_format = "num")
+    log_info("Saving CPI weights data to data/cpi_weights.csv")
+    write_csv(w_raw, "data/cpi_weights.csv")
+  }
+  
   # Filter and process weights
   w = w_raw |>
     filter(geo == treated_unit) |>
     mutate(w = values * 0.001) |>
-    select(outcome = coicop, w, time)
+    select(outcome = coicop, w, year = time)
   # Merge SC results and weights datasets
-  sc_w = inner_join(sc_results, w, by = c("outcome", "time")) |>
-    mutate(
-      w_ate = w * ate,
-      w_ate_u = w * ate_u,
-      w_ate_l = w * ate_l
-    ) |>
-    select(date, outcome, w_ate, w_ate_u, w_ate_l)
+  sc_w = inner_join(sc_results, w, by = c("outcome", "year")) |>
+    mutate( w_gaps = w * gaps) |>
+    select(date, outcome, w_gaps)
 
   ### Prepare data for plotting
 
@@ -112,7 +129,7 @@ plot_weightedCPI = function(df, treated_unit, plot_ci = FALSE) {
   subplot_3 = sc_w |>
     filter(outcome != "CP00") |>
     group_by(date) |>
-    summarise_at(c("w_ate", "w_ate_u", "w_ate_l"), sum) |>
+    summarise_at(c("w_gaps"), sum) |>
     ungroup() |>
     mutate(outcome = "NRG(w)+CP00xNRG(w)") |>
     rbind(sc_w_cp00) |>
@@ -161,7 +178,7 @@ plot_weightedCPI = function(df, treated_unit, plot_ci = FALSE) {
         )
     ) +
     # Plot lines
-    geom_line(aes(x = date, y = w_ate, color = outcome), linewidth = 1) +
+    geom_line(aes(x = date, y = w_gaps, color = outcome), linewidth = 1) +
     # Customize line colors
     scale_color_manual(
       values =

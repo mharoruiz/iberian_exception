@@ -26,7 +26,7 @@
 #' }
 sc = function(y1, y0, Y1, Y0, lsei_type) {
   # Attach required packages
-  library(limSolve)
+  require(limSolve)
   
   # Define variables
   J = dim(y0)[2]
@@ -38,7 +38,7 @@ sc = function(y1, y0, Y1, Y0, lsei_type) {
   w.hat = lsei(A = y0, B = y1, E = e, F = f, G = g, H = h, type = lsei_type)$X
   # Estimate synthetic control unit
   Y0.hat = Y0 %*% w.hat
-  # Compute differences between synthetic and observed trends
+  # Compute differences between synthetic and observed series
   u.hat = Y1 - Y0.hat
 
   return(

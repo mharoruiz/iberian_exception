@@ -1,9 +1,9 @@
 #'
-#' Inference: Twelve Months After the Iberian Exception.
+#' Inference of synthetic control units.
 #'
-#' @description This function reproduces the results from Haro-Ruiz, M. and
-#' Schult C. (2023) , which estimates the effects of the Iberian Exception
-#' mechanism on a different price outcomes.
+#' @description This function reproduces the results from Haro-Ruiz, M., Shcult 
+#' C., and Wunder, C. (2023) , which estimates the effects of the Iberian 
+#' Exception mechanism on a different price outcomes.
 #'
 #' It computes p-values resulting from testing the null-hypothesis that the
 #' effect is 0 for a given set of outcomes and T0s.
@@ -29,12 +29,14 @@
 #'
 inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   # Attach required packages
-  library(readr)
-  library(dplyr)
-  library(tidyr)
-  library(lubridate)
-  library(logger)
-  library(scinference)
+  require(tidyverse)
+  #library(readr)
+  #library(dplyr)
+  #library(tidyr)
+  #library(lubridate)
+  require(eurostat)
+  require(logger)
+  require(scinference)
 
   # Define treatment and end date
   treatment_date = as.Date("2022-06-01")
@@ -44,7 +46,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   if (length(outcomes) != length(T0s)) {
     stop(
       sprintf(
-        "T0s must be the same size as outcomes. Got %s outcomes and %s T0s",
+        "T0s must be the same length as outcomes. Got %s outcomes and %s T0s",
         length(outcomes), length(T0s)
       )
     )
@@ -65,7 +67,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   if (!(is.null(T1_breaks))) {
     if (!(inherits(T1_breaks, "Date"))) {
       stop(
-        'T1_breaks must be objects of class "Date".'
+        "T1_breaks must be objects of class 'Date'."
       )
     }
     for (date in T1_breaks) {
@@ -87,13 +89,19 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
         )
       }
     }
-    if (sum(!(T1_breaks %in% seq(treatment_date, end_date, by = "month"))) != 0) {
+    if (
+      sum(!(T1_breaks %in% seq(treatment_date, end_date, by = "month"))) != 0
+      ) {
       stop(
         sprintf(
           "T1_breaks must be whitin %s and %s. Got %s",
           treatment_date, end_date,
           paste(
-            T1_breaks[which(!(T1_breaks %in% seq(treatment_date, end_date, by = "month")))],
+            T1_breaks[
+              which(
+                !(T1_breaks %in% seq(treatment_date, end_date, by = "month"))
+                )
+              ],
             collapse = ", "
           )
         )
@@ -113,9 +121,15 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
 
   log_info("Loading data")
   # Import day-ahead auction data
-  daa_df_raw = read_csv("data/DAA.csv", show_col_types = FALSE)
-  # Import CPI data at constant taxes from Eurostat
-  hicp_df_raw = get_eurostat("prc_hicp_cind", time_format = "date")
+  daa_df_raw = read_csv("data/day_ahead_price.csv", show_col_types = FALSE)
+  # Import CPI at constant taxes
+  if (file.exists("data/cpi_index.csv")) {
+    hicp_df_raw = read_csv("data/cpi_index.csv", show_col_types = FALSE)
+  } else {
+    hicp_df_raw = get_eurostat("prc_hicp_cind", time_format="date")
+    log_info("Saving HICP data to data/cpi_index.csv")
+    write_csv(hicp_df_raw, "data/cpi_index.csv")
+  }
 
   # Raise error
   not_supported = NULL
@@ -233,9 +247,24 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
 
         # Define length of T1
         T1_dates = unique(sc_df$date[sc_df$post_treatment == TRUE])
+        min_date = min(T1_dates)
+        max_date = max(T1_dates)
         T1_range = paste0(
-          month(min(T1_dates)), "/", year(min(T1_dates)), " - ",
-          month(max(T1_dates)), "/", year(max(T1_dates))
+          ifelse( 
+            nchar(month(min_date)) == 1, 
+            paste0(0, month(min_date)),
+            month(min_date)
+            ),
+          "/",
+          year(min_date),
+          " - ",
+          ifelse( 
+            nchar(month(max_date)) == 1, 
+            paste0(0, month(max_date)),
+            month(max_date)
+          ), 
+          "/",
+          year(max_date)
         )
         log_info(
           sprintf(
