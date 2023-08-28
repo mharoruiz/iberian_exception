@@ -4,17 +4,16 @@ This repository contains files to replicate the figures and tables in *Haro-Ruiz
 
 This project lives in an `renv` reproducible environment which uses R version 4.2.3. It is recommended that you adjust your R version accordingly to execute the files successfully. 
 
-To set up the virtual environment and replicate the results, follow these instructions:
+To set up the virtual environment and replicate the results:
 
 1. Open `replication.Rproj` and execute the following commands:
 
-        install.packages("renv") # if necessary
         library(renv) 
         renv::restore()
         
 2. Version `5.0.2` of package `curl` will be installed by default. However, this version will conflict with package `eurostat`. To resolve this conflict, change the version manually with: 
 
-        install("curl@5.0.1")
+        renv::install("curl@5.0.1")
 
 3. Execute `replicate_results.R`.
 

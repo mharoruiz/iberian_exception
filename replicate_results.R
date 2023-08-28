@@ -7,12 +7,10 @@
 #' This project lives in an renv reproducible environment, which uses R 
 #' version 4.2.3. 
 #' 
-#' To set up the virtual environment and replicate the results, follow these 
-#' instructions:
+#' To set up the virtual environment and replicate the results:
 #'   
 #' 1. Execute the following commands:
-#'   
-#'         install.packages("renv") # if necessary
+#' 
 #'         library(renv) 
 #'         renv::restore()
 #' 
@@ -20,7 +18,7 @@
 #' this version will conflict with package eurostat. To resolve this conflict,
 #' change the version manually with: 
 #'   
-#'         install("curl@5.0.1")
+#'         renv::install("curl@5.0.1")
 #'
 #' 3. Execute this file by pressing Ctrl/Cmd + Shift + Return to execute the 
 #' file as a whole. 
