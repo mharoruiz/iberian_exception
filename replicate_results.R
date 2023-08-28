@@ -9,7 +9,8 @@
 #' 
 #' In order to setup the virtual environment in your local machine, type the 
 #' following commands in the R console:
-#' library(renv) # install.packages("renv") if necessary
+#' install.packages("renv") # if necessary
+#' library(renv) 
 #' renv::restore()
 #' 
 #' To run the script, first restart your R session by pressing Ctrl/Cmd + Shift 
