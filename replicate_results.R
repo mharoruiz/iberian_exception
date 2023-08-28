@@ -4,17 +4,26 @@
 #' wholesale electricity prices and consumer inflation. A synthetic-controls 
 #' approach.
 #' 
-#' This project lives in an renv reproducible environment, which uses R version
-#' 4.2.3. 
+#' This project lives in an renv reproducible environment, which uses R 
+#' version 4.2.3. 
 #' 
-#' In order to setup the virtual environment in your local machine, type the 
-#' following commands in the R console:
-#' install.packages("renv") # if necessary
-#' library(renv) 
-#' renv::restore()
+#' To set up the virtual environment and replicate the results, follow these 
+#' instructions:
+#'   
+#' 1. Execute the following commands:
+#'   
+#'         install.packages("renv") # if necessary
+#'         library(renv) 
+#'         renv::restore()
 #' 
-#' To run the script, first restart your R session by pressing Ctrl/Cmd + Shift 
-#' + 0 followed by Ctrl/Cmd + Shift + Return to execute the file as a whole. 
+#' 2. Version 5.0.2 of package curl will be installed by default. However, 
+#' this version will conflict with package eurostat. To resolve this conflict,
+#' change the version manually with: 
+#'   
+#'         install("curl@5.0.1")
+#'
+#' 3. Execute this file by pressing Ctrl/Cmd + Shift + Return to execute the 
+#' file as a whole. 
 #'
 
 rm(list=ls())
@@ -44,7 +53,7 @@ set.seed(51231)
 estimate_sc(
   outcomes = c("DAA", "CP00", "NRG", "TOT_X_NRG"),
   T0s = c(89, 108, 108, 108),
-  precision = 0.001, # Reduce the number of decimal figures to reduce computational time
+  precision = 0.01, # Reduce the number of decimal figures to reduce computational time
   compute_ci = TRUE,
   save_csv = TRUE
 )
