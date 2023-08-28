@@ -2,13 +2,13 @@
 
 This repository contains files to replicate the figures and tables in *Haro-Ruiz, M., Schult, C. & Wunder, C. (2023). The effects of the Iberian Exception mechanism on wholesale electricity prices and consumer inflation. A synthetic control approach.*
 
-This project lives in an `renv` reproducible environment which uses R version 4.2.3. It is recommended that you adjust your R version accordingly to execute the files succesfully. 
+This project lives in an `renv` reproducible environment which uses R version 4.2.3. It is recommended that you adjust your R version accordingly to execute the files successfully. 
 
 To set up the virtual environment and replicate the results, follow these instructions:
 
-1. Open the `replication.Rproj` file execute the following commands:
+1. Open `replication.Rproj` and execute the following commands:
 
-        # install.packages("renv") # if necessary
+        install.packages("renv") # if necessary
         library(renv) 
         renv::restore()
 
