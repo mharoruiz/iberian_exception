@@ -11,8 +11,9 @@ To set up the virtual environment and replicate the results:
         library(renv) 
         renv::restore()
         
-2. Version `5.0.2` of package `curl` will be installed by default. However, this version will conflict with package `eurostat`. To resolve this conflict, change the version manually with: 
-        renv::install("curl@5.0.1")
+2. Version `5.0.2` of package `curl` will be installed by default. However, this version will conflict with package `eurostat`. To resolve this conflict, change the version manually with:
+
+       renv::install("curl@5.0.1")
 
 3. Execute `replicate_results.R`.
 
