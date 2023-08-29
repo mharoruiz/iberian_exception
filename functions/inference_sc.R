@@ -29,14 +29,10 @@
 #'
 inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   # Attach required packages
-  require(tidyverse)
-  #library(readr)
-  #library(dplyr)
-  #library(tidyr)
-  #library(lubridate)
-  require(eurostat)
-  require(logger)
-  require(scinference)
+  suppressPackageStartupMessages(require(tidyverse))
+  suppressPackageStartupMessages(require(eurostat))
+  suppressPackageStartupMessages(require(logger))
+  suppressPackageStartupMessages(require(scinference))
 
   # Define treatment and end date
   treatment_date = as.Date("2022-06-01")

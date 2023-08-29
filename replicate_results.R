@@ -40,7 +40,7 @@ invisible(
   )
 
 # Load required packages
-require(tidyverse)
+suppressPackageStartupMessages(require(tidyverse))
 
 # Set seed to replicate results
 set.seed(51231)

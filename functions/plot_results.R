@@ -15,10 +15,7 @@
 #'
 plot_results = function(df, var, plot_ci=FALSE) {
   # Install/attach required packages
-  require(tidyverse)
-  #library(readr)
-  #library(dplyr)
-  #library(ggplot2)
+  suppressPackageStartupMessages(require(tidyverse))
 
   # Raise errors
   expected_colnames = c(

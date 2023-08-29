@@ -17,11 +17,7 @@
 #'
 plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
   # Attach required packages
-  require(tidyverse)
-  #library(readr)
-  #library(dplyr)
-  #library(lubridate)
-  #library(ggplot2)
+  suppressPackageStartupMessages(require(tidyverse))
 
   # Raise errors
   expected_colnames = c(

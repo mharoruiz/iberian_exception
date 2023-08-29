@@ -12,9 +12,7 @@
 #'
 get_pval_table = function(dfs) {
   # Attach required packages
-  require(tidyverse)
-  #library(dplyr)
-  #library(tidyr)
+  suppressPackageStartupMessages(require(tidyverse))
 
   # Raise errors
   expected_colnames = c("outcome", "treated", "period", "p_val")

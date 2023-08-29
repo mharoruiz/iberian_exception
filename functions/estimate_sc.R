@@ -23,20 +23,14 @@
 #' @return A dataframe with synthetic and observed series for the given
 #' outcomes and T0s, either as a csv or as a output.
 #'
-estimate_sc = function(
-    outcomes, T0s, precision = .1, compute_ci = TRUE, save_csv = TRUE
-    ) 
+estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) 
   {
   # Attach required packages
-  require(tidyverse)
-  #library(readr)
-  #library(dplyr)
-  #library(tidyr)
-  #library(stringr)
-  #library(lubridate)
-  require(eurostat)
-  require(logger)
-  require(scinference)
+  suppressPackageStartupMessages(require(tidyverse))
+  suppressPackageStartupMessages(require(eurostat))
+  suppressPackageStartupMessages(require(logger))
+  suppressPackageStartupMessages(require(scinference))
+  source("functions/sc.R")
 
   # Raise errors
   if (length(outcomes) != length(T0s)) {
@@ -69,9 +63,6 @@ estimate_sc = function(
       )
     }
   }
-
-  # Import function to compute synthetic controls
-  source("functions/sc.R")
   # Define treated and control units
   treated_units = c("ES", "PT")
   control_units = c(
