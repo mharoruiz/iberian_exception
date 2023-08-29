@@ -23,7 +23,6 @@
 #' 3. Execute this file by pressing Ctrl/Cmd + Shift + Return to execute the 
 #' file as a whole. 
 #'
-
 rm(list=ls())
 
 # Import functions

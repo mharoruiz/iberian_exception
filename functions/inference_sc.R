@@ -5,8 +5,8 @@
 #' C., and Wunder, C. (2023) , which estimates the effects of the Iberian 
 #' Exception mechanism on a different price outcomes.
 #'
-#' It computes p-values resulting from testing the null-hypothesis that the
-#' effect is 0 for a given set of outcomes and T0s.
+#' It computes p-values by testing the null-hypothesis that the effect is 0 for
+#' a given set of outcomes and T0s.
 #'
 #' @param outcomes A list of outcomes to compute synthetic controls for.
 #' @param T0s  A list of sizes of pre-treatment periods. Must be same length
@@ -28,6 +28,7 @@
 #' outcomes and T0s, either as a csv or as a output.
 #'
 inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
+  
   # Attach required packages
   suppressPackageStartupMessages(require(tidyverse))
   suppressPackageStartupMessages(require(eurostat))
@@ -336,4 +337,5 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   } else {
     return(agg_inference)
   }
+  
 }

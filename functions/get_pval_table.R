@@ -1,16 +1,18 @@
 #'
-#' Inference table: Twelve Months After the Iberian Exception.
+#' Inference table
 #'
 #' @description This function replicates table A1 of Haro-Ruiz, M., Shcult C.,
-#' and Wunder, C. (2023), which outlines the estimated ATEs of the Iberian 
-#' exception mechanism on different price indicators for Spain and Portugal.
+#' and Wunder, C. (2023), which outlines the estimated treatment effects of the 
+#' Iberian exception mechanism on different price indicators for Spain and 
+#' Portugal, as well as the p-values of each estimate.
 #'
-#' @param dfs A list with dataframes returned by estimate_sc().
+#' @param dfs A list with dataframes returned by inference_sc().
 #'
 #' @return A dataframe with average treatment effects across periods for
 #' different outcomes and treated units.
 #'
 get_pval_table = function(dfs) {
+  
   # Attach required packages
   suppressPackageStartupMessages(require(tidyverse))
 
@@ -50,4 +52,5 @@ get_pval_table = function(dfs) {
     )
 
   return(pval_table)
+  
 }

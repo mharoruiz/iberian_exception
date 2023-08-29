@@ -1,15 +1,15 @@
 #'
-#' Estimation of synthetic control units.
+#' Estimation of synthetic control units
 #'
-#' @description This function reproduces the results from Haro-Ruiz, M.,  
-#' Shcult C., and Wunder, C. (2023), which estimates the effects of the Iberian 
-#' Exception mechanism on a different price outcomes.
+#' @description This function reproduces the results from Haro-Ruiz, M., Shcult 
+#' C., and Wunder, C. (2023), which estimates the effects of the Iberian 
+#' Exception mechanism on different price outcomes.
 #'
 #' The effect of the intervention is estimated via synthetic controls for
 #' Spain and Portugal given outcome variables and length of pre-treatment
 #' periods.
 #'
-#' @param outcomes A list of outcomes to compute synthetic controls for
+#' @param outcomes A list of outcomes to compute synthetic controls for.
 #' @param T0s  A list of sizes of pre-treatment periods. Must be same length
 #' as outcomes.
 #' @param precision A float between 0 and 1 which defines the step of the grid-
@@ -23,8 +23,8 @@
 #' @return A dataframe with synthetic and observed series for the given
 #' outcomes and T0s, either as a csv or as a output.
 #'
-estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) 
-  {
+estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
+  
   # Attach required packages
   suppressPackageStartupMessages(require(tidyverse))
   suppressPackageStartupMessages(require(eurostat))
@@ -315,4 +315,5 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv)
   } else {
     return(agg_series)
   }
+  
 }

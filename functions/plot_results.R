@@ -1,12 +1,12 @@
 #'
-#' Effect plots.
+#' Effect plots
 #'
 #' @description This function replicates figures 1, 2, 3, B1, B2, B3, and C1 in
 #' Haro-Ruiz, M., Shcult C., and Wunder, C. (2023), which shows the effects of 
 #' the Iberian exception mechanism on different price outcomes for Spain and
 #' Portugal.
 #'
-#' @param df A Dataframe returned by estimate_sc().
+#' @param df A dataframe returned by estimate_sc().
 #' @param var A string with the name of an outcome variable in df.
 #' @param plot_ci logical indicating whether to plot confidence intervals.
 #'
@@ -14,6 +14,7 @@
 #' given outcome for Spain and Portugal.
 #'
 plot_results = function(df, var, plot_ci=FALSE) {
+  
   # Install/attach required packages
   suppressPackageStartupMessages(require(tidyverse))
 
@@ -209,4 +210,5 @@ plot_results = function(df, var, plot_ci=FALSE) {
       )
 
   return(plot)
+  
 }

@@ -1,5 +1,5 @@
 #'
-#' CPI decomposition plots.
+#' CPI decomposition plots
 #'
 #' @description This function replicates figure 3 and A3 of Haro-Ruiz, M.,
 #' Schult C., and Wunder, C. (2023), which shows the disaggreated effect of the 
@@ -9,13 +9,13 @@
 #' @param df A dataframe returned by estimate_sc().
 #' @param treated_unit "ES" to plot results for Spain or "PT" to plot results
 #' for Portugal.
-#' @param plot_ci logical indicating whether to plot condiference intervals or 
-#' not
+#' @param plot_ci logical indicating whether to plot confidence intervals.
 #'
 #' @return A plot showing the effect of the IbEx on the overall inflation rate 
 #' decomposed between energy and non-energy inflation.
 #'
 plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
+  
   # Attach required packages
   suppressPackageStartupMessages(require(tidyverse))
 
@@ -195,4 +195,5 @@ plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
     theme_minimal(base_size = 15)
 
   return(plot)
+  
 }

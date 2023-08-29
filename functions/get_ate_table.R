@@ -1,20 +1,21 @@
 #'
-#' ATE table: Twelve Months After the Iberian Exception.
+#' Average treatment effects table
 #'
-#' @description This function replicates table A1 of Haro-Ruiz, M., Shcult C., 
+#' @description This function replicates table A1 of Haro-Ruiz, M., Shcult C.,
 #' and Wunder, C. (2023), which outlines the estimated treatment effects of the 
 #' Iberian exception mechanism on different price indicators for Spain and 
-#' Portugal.
+#' Portugal, as well as the p-values of each estimate.
 #'
 #' @param df A dataframe returned by estimate_sc().
 #' @param unit String indicating unit of "obs", and "gaps" columns. Accepted 
 #' units are "idx",  for the CPI index and "rate", for the year-on-year rate of 
-#' inflation
+#' inflation.
 #'
 #' @return A dataframe with average treatment effects across periods for
 #' different outcomes and treated units.
 #'
 get_ate_table = function(df, unit) {
+  
   # Attach required packages
   suppressPackageStartupMessages(require(tidyverse))
 
@@ -174,4 +175,5 @@ get_ate_table = function(df, unit) {
     }
 
   return(ate_table)
+  
 }

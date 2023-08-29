@@ -6,15 +6,15 @@
 #' in the donor pool. It is based on the scinference package.
 #'
 #' @param y1 (T0 x 1) matrix of outcome variable for the treated unit in the
-#' pre-treatment period
+#' pre-treatment period.
 #' @param y0 (T0 x J) matrix of outcome variable for the control units in the
-#' pre-treatment period
+#' pre-treatment period.
 #' @param Y1 (T x 1) matrix of outcome variable for the treated unit in the
-#' pre and post-treatment periods
+#' pre and post-treatment periods.
 #' @param Y0 (T x J) matrix of outcome variable for the control units in the
-#' pre and post-treatment periods
+#' pre and post-treatment periods.
 #' @param lsei_type integer indicating the minimization algorithm (see
-#' limSolve::lsei for details)
+#' limSolve::lsei for details).
 #'
 #' @return
 #' A list with the following objects:
@@ -24,7 +24,9 @@
 #'  \item w.hat - J vector of weights assigned to each unit in the donor pool
 #'  \item Y0.hat - (T x 1) matrix of synthetic control unit
 #' }
+#' 
 sc = function(y1, y0, Y1, Y0, lsei_type) {
+  
   # Attach required packages
   suppressPackageStartupMessages(require(limSolve))
   
@@ -48,4 +50,5 @@ sc = function(y1, y0, Y1, Y0, lsei_type) {
       Y0.hat = Y0.hat
     )
   )
+  
 }
