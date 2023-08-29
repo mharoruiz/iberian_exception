@@ -17,4 +17,4 @@ To set up the virtual environment and replicate the results:
 
 3. Execute `replicate_results.R`.
 
-**Note**: The `renv` environment keeps track of the packages needed to execute the scripts as well as their version. While this helps with reproducibility, there are other aspects -such as the R version or the operating system- which may lead to issues in trying to execute the files.
+**Note**: The `renv` environment keeps track of the packages needed to execute the scripts as well as their version. While this helps with reproducibility, there are other aspects -such as the `R` version or the operating system- which may lead to issues in trying to execute the files.
