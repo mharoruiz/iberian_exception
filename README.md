@@ -1,4 +1,4 @@
-# The effects of the Iberian Exception
+# replication
 
 This repository contains files to replicate the figures and tables in *Haro-Ruiz, M., Schult, C. & Wunder, C. (2023). The effects of the Iberian Exception mechanism on wholesale electricity prices and consumer inflation. A synthetic-controls approach.*
 
