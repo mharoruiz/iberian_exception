@@ -299,6 +299,7 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
 
   # Return results as saved csv or variable
   if (save_csv == TRUE) {
+    if (!dir.exists("03_results")) dir.create("03_results")
     if (compute_ci) {
       suffix = paste0("_", str_split(precision, "\\.")[[1]][2])
     } else {

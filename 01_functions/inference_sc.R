@@ -326,6 +326,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
 
   # Save results or return them
   if (save_csv == TRUE) {
+    if (!dir.exists("03_results")) dir.create("03_results")
     file_path = sprintf(
       "03_results/sc_inference_%s.csv",
       suffix

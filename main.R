@@ -18,6 +18,9 @@ invisible(
   lapply(paste0("01_functions/", functions, ".R"), source)
 )
 
+# Define precision for confidence intervals (must be number between 0 and 1)
+# Set prec to a lower value to reduce computational time 
+prec = 0.1
 
 # Set seed to replicate results
 set.seed(51231)
@@ -28,7 +31,7 @@ set.seed(51231)
 estimate_sc(
   outcomes = c("DAA", "CP00", "NRG", "TOT_X_NRG"),
   T0s = c(89, 108, 108, 108),
-  precision = 0.1, # Reduce the number of decimal figures to reduce computational time
+  precision = prec,
   compute_ci = TRUE,
   save_csv = TRUE
 )
@@ -47,7 +50,12 @@ inference_sc(
 )
 
 # Import SC results
-sc_series = read_csv("03_results/sc_series_001.csv", show_col_types = FALSE) 
+# Find most precise result
+series_results = grep('sc_series', list.files("03_results"), value=TRUE)
+idx = which.max(nchar(series_results))
+most_precise = series_results[idx]
+# Read results
+sc_series = read_csv(paste0("03_results/", most_precise), show_col_types = FALSE) 
 sc_inf_12 = read_csv("03_results/sc_inference_12.csv", show_col_types = FALSE)
 sc_inf_6_6 = read_csv("03_results/sc_inference_6_6.csv", show_col_types = FALSE)
 
@@ -156,32 +164,35 @@ fig_C2 = plot_decomposition(df = sc_inflation_rate, treated_unit = "PT") +
     subtitle = "%, year-on-year inflation rate"
   )
 
-### Saving output 
+### Save output
 
+if (!dir.exists("04_output")) dir.create("04_output") 
+# Save figues
 log_info("Saving figures in /04_output")
-if (!(file.exists("04_output"))) dir.create("04_output")
-
-figures =
+figures = as.list(
   c(
-    "fig_1", "fig_2", "fig_3", "fig_4",
+    "fig_1", "fig_2", "fig_3", "fig_4", 
     "fig_B1", "fig_B2", "fig_B3",
     "fig_C1", "fig_C2"
     )
+  )
 for (f in figures) {
   ggsave(
-    file = paste0(f, ".png"),
-    plot = get(f),
-    path = "04_output/"
-    )
+    filename = paste0(as.character(f), ".png"),
+    plot = get(f), 
+    path = "04_output/",
+    height = 5.5,
+    width = 10
+  )
 }
-
+#Save tables
 log_info("Saving tables in /04_output")
 tables = c(
   "table_A1", 
   "table_B1"
 )
 for (t in tables) {
-  write.csv(
+  write_csv(
     get(t), 
     paste0("04_output/", as.character(t), ".csv")
   )
