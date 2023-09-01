@@ -1,6 +1,10 @@
 # STAGE 1: renv-related code
 FROM rocker/rstudio:4.2.3 AS base
 
+LABEL maintainer="Miguel Haro Ruiz <m.haroruiz@gmail.com>" \
+      info="Replication for Haro-Ruiz, M., Schult, C. & Wunder, C. (2023)" \
+      code="https://github.com/mharoruiz/iberian_exception" 
+
 # install renv
 ENV RENV_VERSION 1.0.2
 RUN R -e "install.packages('https://cran.r-project.org/src/contrib/Archive/renv/renv_${RENV_VERSION}.tar.gz', repos=NULL, type='source')"
