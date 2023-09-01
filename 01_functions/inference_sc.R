@@ -1,7 +1,7 @@
 #'
 #' Inference of synthetic control units.
 #'
-#' @description This function reproduces the results from Haro-Ruiz, M., Shcult 
+#' @description This function reproduces the results from Haro-Ruiz, M., Schult 
 #' C., and Wunder, C. (2023) , which estimates the effects of the Iberian 
 #' Exception mechanism on a different price outcomes.
 #'
@@ -30,10 +30,13 @@
 inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   
   # Attach required packages
-  suppressPackageStartupMessages(require(tidyverse))
-  suppressPackageStartupMessages(require(eurostat))
-  suppressPackageStartupMessages(require(logger))
-  suppressPackageStartupMessages(require(scinference))
+  require(lubridate)
+  require(tidyr)
+  require(dplyr)
+  require(readr)
+  require(eurostat)
+  require(logger)
+  require(scinference)
 
   # Define treatment and end date
   treatment_date = as.Date("2022-06-01")
@@ -118,14 +121,14 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
 
   log_info("Loading data")
   # Import day-ahead auction data
-  daa_df_raw = read_csv("data/day_ahead_price.csv", show_col_types = FALSE)
+  daa_df_raw = read_csv("02_data/day_ahead_price.csv", show_col_types = FALSE)
   # Import CPI at constant taxes
-  if (file.exists("data/cpi_index.csv")) {
-    hicp_df_raw = read_csv("data/cpi_index.csv", show_col_types = FALSE)
+  if (file.exists("02_data/cpi_index.csv")) {
+    hicp_df_raw = read_csv("02_data/cpi_index.csv", show_col_types = FALSE)
   } else {
     hicp_df_raw = get_eurostat("prc_hicp_cind", time_format="date")
     log_info("Saving HICP data to data/cpi_index.csv")
-    write_csv(hicp_df_raw, "data/cpi_index.csv")
+    write_csv(hicp_df_raw, "02_data/cpi_index.csv")
   }
 
   # Raise error
@@ -324,7 +327,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   # Save results or return them
   if (save_csv == TRUE) {
     file_path = sprintf(
-      "results/sc_inference_%s.csv",
+      "03_results/sc_inference_%s.csv",
       suffix
     )
     log_info(

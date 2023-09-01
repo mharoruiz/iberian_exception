@@ -1,31 +1,11 @@
-#'
-#' This file replicates the figures and tables in Haro-Ruiz, M.,  Shcult C., and
-#' Wunder, C. (2023). The effects of the Iberian exception mechanism on 
-#' wholesale electricity prices and consumer inflation. A synthetic-controls 
-#' approach.
-#' 
-#' This project lives in an renv reproducible environment, which uses R 
-#' version 4.2.3. 
-#' 
-#' To set up the virtual environment and replicate the results:
-#'   
-#' 1. Execute the following commands:
-#' 
-#'         library(renv) 
-#'         renv::restore()
-#' 
-#' 2. Version 5.0.2 of package curl will be installed by default. However, 
-#' this version will conflict with package eurostat. To resolve this conflict,
-#' change the version manually with: 
-#'   
-#'         renv::install("curl@5.0.1")
-#'
-#' 3. Execute this file by pressing Ctrl/Cmd + Shift + Return to execute the 
-#' file as a whole. 
-#'
 rm(list=ls())
 
-# Import functions
+# Load required packages and functions
+require(readr)
+require(logger)
+require(tidyr)
+require(dplyr)
+require(ggplot2)
 functions = c(
   "estimate_sc",
   "inference_sc", 
@@ -33,13 +13,11 @@ functions = c(
   "plot_decomposition",
   "get_ate_table", 
   "get_pval_table"
-  )
+)
 invisible(
-  lapply(paste0("functions/", functions, ".R"), source)
-  )
+  lapply(paste0("01_functions/", functions, ".R"), source)
+)
 
-# Load required packages
-suppressPackageStartupMessages(require(tidyverse))
 
 # Set seed to replicate results
 set.seed(51231)
@@ -50,7 +28,7 @@ set.seed(51231)
 estimate_sc(
   outcomes = c("DAA", "CP00", "NRG", "TOT_X_NRG"),
   T0s = c(89, 108, 108, 108),
-  precision = 0.01, # Reduce the number of decimal figures to reduce computational time
+  precision = 0.1, # Reduce the number of decimal figures to reduce computational time
   compute_ci = TRUE,
   save_csv = TRUE
 )
@@ -69,9 +47,9 @@ inference_sc(
 )
 
 # Import SC results
-sc_series = read_csv("results/sc_series_001.csv", show_col_types = FALSE) 
-sc_inf_12 = read_csv("results/sc_inference_12.csv", show_col_types = FALSE)
-sc_inf_6_6 = read_csv("results/sc_inference_6_6.csv", show_col_types = FALSE)
+sc_series = read_csv("03_results/sc_series_001.csv", show_col_types = FALSE) 
+sc_inf_12 = read_csv("03_results/sc_inference_12.csv", show_col_types = FALSE)
+sc_inf_6_6 = read_csv("03_results/sc_inference_6_6.csv", show_col_types = FALSE)
 
 # Compute synthetic and observed year-on-year inflation rate from CPI series
 sc_inflation_rate = sc_series |>
@@ -177,4 +155,35 @@ fig_C2 = plot_decomposition(df = sc_inflation_rate, treated_unit = "PT") +
     title = "Decomposition of the effect of the IbEx on Spain's inflation rate",
     subtitle = "%, year-on-year inflation rate"
   )
+
+### Saving output 
+
+log_info("Saving figures in /04_output")
+if (!(file.exists("04_output"))) dir.create("04_output")
+
+figures =
+  c(
+    "fig_1", "fig_2", "fig_3", "fig_4",
+    "fig_B1", "fig_B2", "fig_B3",
+    "fig_C1", "fig_C2"
+    )
+for (f in figures) {
+  ggsave(
+    file = paste0(f, ".png"),
+    plot = get(f),
+    path = "04_output/"
+    )
+}
+
+log_info("Saving tables in /04_output")
+tables = c(
+  "table_A1", 
+  "table_B1"
+)
+for (t in tables) {
+  write.csv(
+    get(t), 
+    paste0("04_output/", as.character(t), ".csv")
+  )
+}
 

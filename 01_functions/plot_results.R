@@ -2,7 +2,7 @@
 #' Effect plots
 #'
 #' @description This function replicates figures 1, 2, 3, B1, B2, B3, and C1 in
-#' Haro-Ruiz, M., Shcult C., and Wunder, C. (2023), which shows the effects of 
+#' Haro-Ruiz, M., Schult C., and Wunder, C. (2023), which shows the effects of 
 #' the Iberian exception mechanism on different price outcomes for Spain and
 #' Portugal.
 #'
@@ -16,7 +16,8 @@
 plot_results = function(df, var, plot_ci=FALSE) {
   
   # Install/attach required packages
-  suppressPackageStartupMessages(require(tidyverse))
+  require(ggplot2)
+  require(dplyr)
 
   # Raise errors
   expected_colnames = c(
@@ -206,7 +207,11 @@ plot_results = function(df, var, plot_ci=FALSE) {
     theme_minimal(base_size = 15) +
     theme(
       strip.placement="out",
-      legend.title = element_blank()
+      legend.title = element_blank(),
+      plot.background = element_rect(
+        color = "white",
+        fill = "white"
+        )
       )
 
   return(plot)

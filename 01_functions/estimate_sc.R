@@ -1,7 +1,7 @@
 #'
 #' Estimation of synthetic control units
 #'
-#' @description This function reproduces the results from Haro-Ruiz, M., Shcult 
+#' @description This function reproduces the results from Haro-Ruiz, M., Schult 
 #' C., and Wunder, C. (2023), which estimates the effects of the Iberian 
 #' Exception mechanism on different price outcomes.
 #'
@@ -25,12 +25,15 @@
 #'
 estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   
-  # Attach required packages
-  suppressPackageStartupMessages(require(tidyverse))
-  suppressPackageStartupMessages(require(eurostat))
-  suppressPackageStartupMessages(require(logger))
-  suppressPackageStartupMessages(require(scinference))
-  source("functions/sc.R")
+  # Attach required packages and functions
+  require(readr)
+  require(tidyr)
+  require(dplyr)
+  require(stringr)
+  require(eurostat)
+  require(logger)
+  require(scinference)
+  source("01_functions/sc.R")
 
   # Raise errors
   if (length(outcomes) != length(T0s)) {
@@ -76,14 +79,14 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   
   log_info("Loading data")
   # Import day-ahead auction data
-  daa_df_raw = read_csv("data/day_ahead_price.csv", show_col_types = FALSE)
+  daa_df_raw = read_csv("02_data/day_ahead_price.csv", show_col_types = FALSE)
   # Import CPI at constant taxes
-  if (file.exists("data/cpi_index.csv")) {
-    hicp_df_raw = read_csv("data/cpi_index.csv", show_col_types = FALSE)
+  if (file.exists("02_data/cpi_index.csv")) {
+    hicp_df_raw = read_csv("02_data/cpi_index.csv", show_col_types = FALSE)
   } else {
     hicp_df_raw = get_eurostat("prc_hicp_cind", time_format="date")
     log_info("Saving CPI data to data/cpi_index.csv")
-    write_csv(hicp_df_raw, "data/cpi_index.csv")
+    write_csv(hicp_df_raw, "02_data/cpi_index.csv")
   }
 
   # Raise error
@@ -302,7 +305,7 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
       suffix = ""
     }
     file_path = sprintf(
-      "results/sc_series%s.csv",
+      "03_results/sc_series%s.csv",
       suffix
     )
     log_info(

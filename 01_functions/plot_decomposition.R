@@ -17,7 +17,9 @@
 plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
   
   # Attach required packages
-  suppressPackageStartupMessages(require(tidyverse))
+  require(readr)
+  require(ggplot2)
+  require(dplyr)
 
   # Raise errors
   expected_colnames = c(
@@ -84,12 +86,12 @@ plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
     ) |>
     select(date, outcome, gaps, year)
   # Import CPI weights weights data
-  if (file.exists("data/cpi_weights.csv")) {
-    w_raw = read_csv("data/cpi_weights.csv", show_col_types = FALSE)
+  if (file.exists("02_data/cpi_weights.csv")) {
+    w_raw = read_csv("02_data/cpi_weights.csv", show_col_types = FALSE)
   } else {
     w_raw = get_eurostat("prc_hicp_inw", time_format = "num")
     log_info("Saving CPI weights data to data/cpi_weights.csv")
-    write_csv(w_raw, "data/cpi_weights.csv")
+    write_csv(w_raw, "02_data/cpi_weights.csv")
   }
   
   # Filter and process weights
@@ -192,7 +194,13 @@ plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
     # Create subplots
     facet_wrap(~subplot) +
     # Customize theme
-    theme_minimal(base_size = 15)
+    theme_minimal(base_size = 15) +
+    theme(
+      plot.background = element_rect(
+        color = "white",
+        fill = "white"
+      )
+    )
 
   return(plot)
   

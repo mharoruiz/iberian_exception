@@ -1,7 +1,7 @@
 #'
 #' Inference table
 #'
-#' @description This function replicates table A1 of Haro-Ruiz, M., Shcult C.,
+#' @description This function replicates table A1 of Haro-Ruiz, M., Schult C.,
 #' and Wunder, C. (2023), which outlines the estimated treatment effects of the 
 #' Iberian exception mechanism on different price indicators for Spain and 
 #' Portugal, as well as the p-values of each estimate.
@@ -14,7 +14,8 @@
 get_pval_table = function(dfs) {
   
   # Attach required packages
-  suppressPackageStartupMessages(require(tidyverse))
+  require(tidyr)
+  require(dplyr)
 
   # Raise errors
   expected_colnames = c("outcome", "treated", "period", "p_val")

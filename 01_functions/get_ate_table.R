@@ -1,7 +1,7 @@
 #'
 #' Average treatment effects table
 #'
-#' @description This function replicates table A1 of Haro-Ruiz, M., Shcult C.,
+#' @description This function replicates table A1 of Haro-Ruiz, M., Schult C.,
 #' and Wunder, C. (2023), which outlines the estimated treatment effects of the 
 #' Iberian exception mechanism on different price indicators for Spain and 
 #' Portugal, as well as the p-values of each estimate.
@@ -17,7 +17,9 @@
 get_ate_table = function(df, unit) {
   
   # Attach required packages
-  suppressPackageStartupMessages(require(tidyverse))
+  require(lubridate)
+  require(tidyr)
+  require(dplyr)
 
   # Raise errors
   supported_units = c("idx", "rate")
