@@ -20,7 +20,7 @@ invisible(
 
 # Define precision for confidence intervals (must be number between 0 and 1)
 # Set prec to a lower value to reduce computational time 
-prec = 0.1
+prec = .001
 
 # Set seed to replicate results
 set.seed(51231)

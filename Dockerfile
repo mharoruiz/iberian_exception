@@ -18,7 +18,6 @@ RUN mkdir -p renv
 COPY renv/activate.R renv/activate.R
 COPY renv/settings.json renv/settings.json
 
-
 # change default location of cache to project folder
 RUN mkdir renv/.cache
 ENV RENV_PATHS_CACHE renv/.cache
@@ -26,7 +25,7 @@ ENV RENV_PATHS_CACHE renv/.cache
 # restore packages as defined in lockfile
 RUN R -e "renv::restore()"
 
-# STAGE 2
+# STAGE 2: project-related code
 FROM rocker/rstudio:4.2.3
 
 WORKDIR /home/rstudio/iberian_exception
@@ -39,7 +38,7 @@ COPY /02_data /home/rstudio/iberian_exception/02_data
 RUN mkdir -p 03_results
 RUN mkdir -p 04_output
 
-# 
+# Execute main.R and save workspace
 RUN R -e "setwd('/home/rstudio/iberian_exception')"
 RUN R -e "source('main.R')"
 RUN R -e "save.image('ibex_workspace.RData')"
