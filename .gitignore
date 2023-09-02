@@ -3,6 +3,5 @@
 /02_data/cpi_index.csv
 Dockerfile
 .Rhistory
-.Rprofile
 .RData
 .DS_Store
