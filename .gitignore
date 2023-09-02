@@ -2,6 +2,7 @@
 /02_data/cpi_weights.csv
 /02_data/cpi_index.csv
 Dockerfile
+.dockerignore
 .Rhistory
 .RData
 .DS_Store

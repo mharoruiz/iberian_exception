@@ -1,4 +1,20 @@
+#' 
+#' This script reproduces the figures and tables in Haro-Ruiz, M., Schult, 
+#' C. & Wunder, C. (2023). 
+#' 
+#' The runtime of the script is regulared by variable prc, which is defined
+#' in line 15 and determines the precision of the confidence intervals for 
+#' the treatment effect. By default, prc=.1, allowing for a relatively 
+#' quick execution. Note that the results presented in the paper were 
+#' obtained with prc=.001. 
+#'
 rm(list=ls())
+
+# Script settings 
+set.seed(51231)
+prc = .1 # Define step for confidence interval grid-search
+save_results = TRUE
+save_output = TRUE
 
 # Load required packages and functions
 require(readr)
@@ -18,12 +34,7 @@ invisible(
   lapply(paste0("01_functions/", functions, ".R"), source)
 )
 
-# Script settings 
-prc = .1 # Define step for confidence interval grid-search
-save_output = TRUE
-set.seed(51231)
-
-### Estimate results 
+### Compute results
 
 # Estimate synthetic controls 
 estimate_sc(
@@ -31,28 +42,27 @@ estimate_sc(
   T0s = c(89, 108, 108, 108),
   precision = prc,
   compute_ci = TRUE,
-  save_csv = TRUE
+  save_csv = save_results
 )
 # Estimate p-values for full post-treatment period
 inference_sc(
   outcomes = c("DAA", "CP00", "NRG", "TOT_X_NRG"),
   T0s = c(89, 108, 108, 108),
-  save_csv = TRUE
+  save_csv = save_results
 )
 # Estimate p-values for 07/2022-12/2022 and 01/2023-06/2023 sub-periods
 inference_sc(
   outcomes = c("DAA", "CP00", "NRG", "TOT_X_NRG"),
   T0s = c(89, 108, 108, 108),
   T1_breaks = c(as.Date("2022-12-01")),
-  save_csv = TRUE
+  save_csv = save_results
 )
 
-# Import SC results
 # Find most precise result available
 series_results = grep('sc_series', list.files("03_results"), value=TRUE)
 idx = which.max(nchar(series_results))
 most_precise = series_results[idx]
-# Read results
+# Import SC results
 sc_series = read_csv(paste0("03_results/", most_precise), show_col_types = FALSE) 
 sc_inf_12 = read_csv("03_results/sc_inference_12.csv", show_col_types = FALSE)
 sc_inf_6_6 = read_csv("03_results/sc_inference_6_6.csv", show_col_types = FALSE)
