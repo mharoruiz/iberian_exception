@@ -18,11 +18,9 @@ invisible(
   lapply(paste0("01_functions/", functions, ".R"), source)
 )
 
-# Define precision for confidence intervals (must be number between 0 and 1)
-# Set prec to a lower value to reduce computational time 
-prec = .001
-
-# Set seed to replicate results
+# Script settings 
+prc = .1 # Define step for confidence interval grid-search
+save_output = TRUE
 set.seed(51231)
 
 ### Estimate results 
@@ -31,7 +29,7 @@ set.seed(51231)
 estimate_sc(
   outcomes = c("DAA", "CP00", "NRG", "TOT_X_NRG"),
   T0s = c(89, 108, 108, 108),
-  precision = prec,
+  precision = prc,
   compute_ci = TRUE,
   save_csv = TRUE
 )
@@ -50,7 +48,7 @@ inference_sc(
 )
 
 # Import SC results
-# Find most precise result
+# Find most precise result available
 series_results = grep('sc_series', list.files("03_results"), value=TRUE)
 idx = which.max(nchar(series_results))
 most_precise = series_results[idx]
@@ -165,36 +163,36 @@ fig_C2 = plot_decomposition(df = sc_inflation_rate, treated_unit = "PT") +
   )
 
 ### Save output
-
-if (!dir.exists("04_output")) dir.create("04_output") 
-# Save figues
-log_info("Saving figures in /04_output")
-figures = as.list(
-  c(
-    "fig_1", "fig_2", "fig_3", "fig_4", 
-    "fig_B1", "fig_B2", "fig_B3",
-    "fig_C1", "fig_C2"
+if (save_output) {
+  if (!dir.exists("04_output")) dir.create("04_output") 
+  # Save figues
+  log_info("Saving figures in /04_output")
+  figures = as.list(
+    c(
+      "fig_1", "fig_2", "fig_3", "fig_4", 
+     "fig_B1", "fig_B2", "fig_B3",
+      "fig_C1", "fig_C2"
+      )
     )
+    for (f in figures) {
+    ggsave(
+      filename = paste0(as.character(f), ".png"),
+      plot = get(f), 
+      path = "04_output/",
+      height = 5.5,
+      width = 10
+    )
+  }
+  #Save tables
+  log_info("Saving tables in /04_output")
+  tables = c(
+    "table_A1", 
+    "table_B1"
   )
-for (f in figures) {
-  ggsave(
-    filename = paste0(as.character(f), ".png"),
-    plot = get(f), 
-    path = "04_output/",
-    height = 5.5,
-    width = 10
-  )
+  for (t in tables) {
+    write_csv(
+      get(t), 
+      paste0("04_output/", as.character(t), ".csv")
+    )
+  }
 }
-#Save tables
-log_info("Saving tables in /04_output")
-tables = c(
-  "table_A1", 
-  "table_B1"
-)
-for (t in tables) {
-  write_csv(
-    get(t), 
-    paste0("04_output/", as.character(t), ".csv")
-  )
-}
-

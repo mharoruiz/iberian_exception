@@ -131,7 +131,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
     write_csv(hicp_df_raw, "02_data/cpi_index.csv")
   }
 
-  # Raise error
+  # Raise errors
   not_supported = NULL
   for (out in outcomes) {
     if (out != "DAA" & !(out %in% hicp_df_raw$coicop)) {
@@ -157,8 +157,8 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
       )
     }
   }
-  
-  # Preprocess day-ahead auction data
+
+  # Preprocess day-ahead price data
   daa_df = daa_df_raw |>
     group_by(country) |>
     filter(!any(is.na(DAA))) |>
@@ -195,7 +195,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
     ) |>
     pivot_wider(names_from = outcome, values_from = values) |>
     arrange(country, date)
-
+  
   # Create empty data container to store results
   agg_inference = NULL
 
