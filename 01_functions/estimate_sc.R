@@ -26,13 +26,13 @@
 estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   
   # Attach required packages and functions
-  require(readr)
-  require(tidyr)
-  require(dplyr)
-  require(stringr)
-  require(eurostat)
-  require(logger)
-  require(scinference)
+  suppressMessages(require(readr))
+  suppressMessages(require(tidyr))
+  suppressMessages(require(dplyr))
+  suppressMessages(require(stringr))
+  suppressMessages(require(eurostat))
+  suppressMessages(require(logger))
+  suppressMessages(require(scinference))
   source("01_functions/sc.R")
 
   # Raise errors

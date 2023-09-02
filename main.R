@@ -17,11 +17,11 @@ save_results = TRUE
 save_output = TRUE
 
 # Load required packages and functions
-require(readr)
-require(logger)
-require(tidyr)
-require(dplyr)
-require(ggplot2)
+suppressMessages(require(readr))
+suppressMessages(require(logger))
+suppressMessages(require(tidyr))
+suppressMessages(require(dplyr))
+suppressMessages(require(ggplot2))
 functions = c(
   "estimate_sc",
   "inference_sc", 
@@ -176,7 +176,7 @@ fig_C2 = plot_decomposition(df = sc_inflation_rate, treated_unit = "PT") +
 if (save_output) {
   if (!dir.exists("04_output")) dir.create("04_output") 
   # Save figues
-  log_info("Saving figures in /04_output")
+  log_info("Saving figures in 04_output/")
   figures = as.list(
     c(
       "fig_1", "fig_2", "fig_3", "fig_4", 
@@ -194,7 +194,7 @@ if (save_output) {
     )
   }
   #Save tables
-  log_info("Saving tables in /04_output")
+  log_info("Saving tables in 04_output/")
   tables = c(
     "table_A1", 
     "table_B1"

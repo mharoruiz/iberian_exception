@@ -28,7 +28,7 @@
 sc = function(y1, y0, Y1, Y0, lsei_type) {
   
   # Attach required packages
-  require(limSolve)
+  suppressMessages(require(limSolve))
   
   # Define variables
   J = dim(y0)[2]

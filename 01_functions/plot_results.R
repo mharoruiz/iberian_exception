@@ -16,8 +16,8 @@
 plot_results = function(df, var, plot_ci=FALSE) {
   
   # Install/attach required packages
-  require(ggplot2)
-  require(dplyr)
+  suppressMessages(require(ggplot2))
+  suppressMessages(require(dplyr))
 
   # Raise errors
   expected_colnames = c(
