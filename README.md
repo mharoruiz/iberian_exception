@@ -14,12 +14,8 @@ git clone https://github.com/mharoruiz/iberian_exception && \
 Next, run a Docker container from an image that contains all the necessary packages: 
 
 ```shell
-docker run --rm \ # run docker image
-    -p 8787:8787 \ 
-    -e DISABLE_AUTH=true \
-    -v $(pwd):/home/rstudio/iberian_exception \ # mount repository directory into container
-    -v /home/rstudio/iberian_exception/renv \ # mount renv directory into container
-    mharoruiz/ibex:v0.1 # image to run container from
+docker run --rm -p 8787:8787 -e DISABLE_AUTH=true -v $(pwd):/home/rstudio/iberian_exception mharoruiz/ibex:v0.1
 ```
+This command runs the container (`docker run`) from the image (`mharoruiz/ibex:v0.1`), and mounts the local project directory into the container directory (`-v $(pwd):/home/rstudio/iberian_exception`).
 
 Now you can access the image by pointing your browser to `localhost:8787`. This will open an instance of RStudio which is ready to reproduce the results. To begin the replication, first open `iberian_exception.Rproj`, and then execute `main.R` by pressing `ctrl`/`cmd`+`tab`+`S`.
