@@ -6,7 +6,7 @@
 #' Iberian exception mechanism on different price indicators for Spain and 
 #' Portugal, as well as the p-values of each estimate.
 #'
-#' @param df A dataframe returned by estimate_sc().
+#' @param df Dataframe returned by estimate_sc().
 #' @param unit String indicating unit of "obs", and "gaps" columns. Accepted 
 #' units are "idx",  for the CPI index and "rate", for the year-on-year rate of 
 #' inflation.

@@ -1,23 +1,25 @@
 #' 
-#' This script reproduces the figures and tables in Haro-Ruiz, M., Schult, 
-#' C. & Wunder, C. (2023). 
+#' This script reproduces the figures and tables in Haro-Ruiz, M., Schult, C. & 
+#' Wunder, C. (2023). 
 #' 
-#' The runtime of the script is regulared by variable prc, which is defined
-#' in line 15 and determines the precision of the confidence intervals for 
-#' the treatment effect. By default, prc=.1, allowing for a relatively 
-#' quick execution. Note that the results presented in the paper were 
-#' obtained with prc=.001. 
+#' The runtime of the script is regulated by variable prc, which is defined in 
+#' line 15 and determines the precision of the confidence intervals for the 
+#' treatment effect. By default, prc=.1, allowing for a relatively quick 
+#' execution. Note that the results presented in the paper were obtained with 
+#' prc=.001 (These results are saved in 03_results/sc_series_001.csv). 
 #'
 rm(list=ls())
 
-# Script settings 
+### Script settings 
 set.seed(51231)
-prc = .1 # Define step for confidence interval grid-search
+ci = TRUE
+if (ci) prc = .1 # Define step size for confidence interval grid-search
 save_results = TRUE
 save_output = TRUE
 
 # Load required packages and functions
 suppressMessages(require(readr))
+suppressMessages(require(stringr))
 suppressMessages(require(logger))
 suppressMessages(require(tidyr))
 suppressMessages(require(dplyr))
@@ -41,7 +43,7 @@ estimate_sc(
   outcomes = c("DAA", "CP00", "NRG", "TOT_X_NRG"),
   T0s = c(89, 108, 108, 108),
   precision = prc,
-  compute_ci = TRUE,
+  compute_ci = ci,
   save_csv = save_results
 )
 # Estimate p-values for full post-treatment period
@@ -58,12 +60,18 @@ inference_sc(
   save_csv = save_results
 )
 
-# Find most precise result available
-series_results = grep('sc_series', list.files("03_results"), value=TRUE)
-idx = which.max(nchar(series_results))
-most_precise = series_results[idx]
+# Determine sc_series path
+if (ci) {
+  suffix = paste0("_", str_split(prc, "\\.")[[1]][2])
+} else {
+  suffix = ""
+}
+series_path = sprintf(
+  "03_results/sc_series%s.csv",
+  suffix
+)
 # Import SC results
-sc_series = read_csv(paste0("03_results/", most_precise), show_col_types = FALSE) 
+sc_series = read_csv(series_path, show_col_types = FALSE) 
 sc_inf_12 = read_csv("03_results/sc_inference_12.csv", show_col_types = FALSE)
 sc_inf_6_6 = read_csv("03_results/sc_inference_6_6.csv", show_col_types = FALSE)
 
@@ -80,22 +88,24 @@ sc_inflation_rate = sc_series |>
   drop_na(obs) |>
   select(date, obs, synth, gaps, outcome, treated)
 
+### Replicate figures and tables
+
 ### Fig 1. Observed and Synthetic day-ahead price series, and difference between them with 90% CIs.
-fig_1 = plot_results(df = sc_series, var = "DAA", plot_ci = TRUE) +
+fig_1 = plot_results(df = sc_series, var = "DAA", plot_ci = ci) +
   labs(
     title = "Effect of the IbEx day-ahead price",
     subtitle = "Index, 2015=100 - 90% confidence intervals"
   )
 
 ### Fig 2. Observed and Synthetic energy CPI series, and difference between them with 90% CIs.
-fig_2 = plot_results(df = sc_series, var = "NRG", plot_ci = TRUE) +
+fig_2 = plot_results(df = sc_series, var = "NRG", plot_ci = ci) +
   labs(
     title = "Effect of the IbEx energy CPI",
     subtitle = "Index, 2015=100 - 90% confidence intervals"
   )
 
 ### Fig 3. Observed and Synthetic overall CPI series, and difference between them with 90% CIs.
-fig_3 = plot_results(df = sc_series, var = "CP00", plot_ci = TRUE) +
+fig_3 = plot_results(df = sc_series, var = "CP00", plot_ci = ci) +
   labs(
     title = "Effect of the IbEx overall CPI",
     subtitle = "Index, 2015=100 - 90% confidence intervals"
@@ -135,21 +145,21 @@ table_A1 = inner_join(ate_tab, pval_tab, by = c("outcome", "period")) |>
   arrange(outcome, period)
 
 ### Fig. B1. Observed and synthetic energy inflation rate series, and difference between them.
-fig_B1 = plot_results(df = sc_inflation_rate, var = "NRG", plot_ci = FALSE) +
+fig_B1 = plot_results(df = sc_inflation_rate, var = "NRG") +
   labs(
     title = "Effect of the IbEx energy inflation rate",
     subtitle = "%, year-on-year inflation rate"
     )
 
 ### Fig. B2. Observed and synthetic overall inflation rate series, and difference between them.
-fig_B2 = plot_results(df = sc_inflation_rate, var = "CP00", plot_ci = FALSE) +
+fig_B2 = plot_results(df = sc_inflation_rate, var = "CP00") +
   labs(
     title = "Effect of the IbEx overall inflation rate",
     subtitle = "%, year-on-year inflation rate"
   )
 
 ### Fig. B3. Observed and synthetic overall inflation rate series, and difference between them.
-fig_B3 = plot_results(df = sc_inflation_rate, var = "TOT_X_NRG", plot_ci = FALSE) +
+fig_B3 = plot_results(df = sc_inflation_rate, var = "TOT_X_NRG") +
   labs(
     title = "Effect of the IbEx overall inflation rate excluding energy",
     subtitle = "%, year-on-year inflation rate"
@@ -159,7 +169,7 @@ fig_B3 = plot_results(df = sc_inflation_rate, var = "TOT_X_NRG", plot_ci = FALSE
 table_B1 = get_ate_table(df = sc_inflation_rate, unit = "rate")
 
 ### Fig. C1. Observed and Synthetic overall CPI excluding energy series, and difference between them with 90% CIs.
-fig_C1 = plot_results(df = sc_series, var = "TOT_X_NRG", plot_ci = TRUE) +
+fig_C1 = plot_results(df = sc_series, var = "TOT_X_NRG", plot_ci = ci) +
   labs(
     title = "Effect of the IbEx overall CPI excluding energy",
     subtitle = "Index, 2015=100 - 90% confidence intervals"

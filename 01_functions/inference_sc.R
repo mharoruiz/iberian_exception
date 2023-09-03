@@ -8,23 +8,23 @@
 #' It computes p-values by testing the null-hypothesis that the effect is 0 for
 #' a given set of outcomes and T0s.
 #'
-#' @param outcomes A list of outcomes to compute synthetic controls for.
-#' @param T0s  A list of sizes of pre-treatment periods. Must be same length
+#' @param outcomes Matrix of outcomes to compute synthetic controls for.
+#' @param T0s  Matrix of sizes of pre-treatment periods. Must be same length
 #' as outcomes.
-#' @param break_poitns An object of class "Date" or a list containing "Date"
+#' @param break_poitns Object of class "Date" or a list containing "Date"
 #' class objects. Break points will be used to divide the post-treatment
 #' period into sub-periods and compute p-values across them. The post-
 #' treatment period ranges from  07/2022 to  06/2023 so T1_breaks must be
 #' within this range. For example, setting T1_breaks=as.Date("2022-12-01")
 #' will compute p-values for the sub-periods 07/2022-12/2022 and 01/2023-
 #' 06/2023.
-#' @param save_csv logical to save results as csv file. The name of the file
+#' @param save_csv Boolean to save results as csv file. The name of the file
 #' will be set depending on the number of sub-periods and their length. For
 #' example, setting T1_breaks=as.Date("2022-12-01") will return a file named
 #' sc_inference_6_6.csv because this computes p-values for two sup-periods of
 #' 6 months each. Default: TRUE.
 #'
-#' @return A dataframe with p-values for the specified sub-periods given
+#' @return Dataframe with p-values for the specified sub-periods given
 #' outcomes and T0s, either as a csv or as a output.
 #'
 inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
@@ -120,14 +120,14 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   )
 
   log_info("Loading data")
-  # Import day-ahead auction data
+  # Import day-ahead price data
   daa_df_raw = read_csv("02_data/day_ahead_price.csv", show_col_types = FALSE)
   # Import CPI at constant taxes
   if (file.exists("02_data/cpi_index.csv")) {
     hicp_df_raw = read_csv("02_data/cpi_index.csv", show_col_types = FALSE)
   } else {
     hicp_df_raw = get_eurostat("prc_hicp_cind", time_format="date")
-    log_info("Saving HICP data to data/cpi_index.csv")
+    log_info("Saving HICP data to 02_data/cpi_index.csv")
     write_csv(hicp_df_raw, "02_data/cpi_index.csv")
   }
 
@@ -324,8 +324,8 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
     }
   }
 
-  # Save results or return them
-  if (save_csv == TRUE) {
+  # Return results as saved csv or dataframe
+  if (save_csv) {
     if (!dir.exists("03_results")) dir.create("03_results")
     file_path = sprintf(
       "03_results/sc_inference_%s.csv",

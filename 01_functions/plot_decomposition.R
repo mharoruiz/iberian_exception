@@ -6,13 +6,13 @@
 #' Iberian exception mechanism between energy and non-energy inflation for Spain 
 #' and Portugal.
 #'
-#' @param df A dataframe returned by estimate_sc().
-#' @param treated_unit "ES" to plot results for Spain or "PT" to plot results
-#' for Portugal.
-#' @param plot_ci logical indicating whether to plot confidence intervals.
+#' @param df Dataframe returned by estimate_sc().
+#' @param treated_unit String indicating the treated unit to plot results for.
+#' "ES" to plot results for Spain or "PT" to plot results for Portugal.
+#' @param plot_ci Boolean indicating whether to plot confidence intervals.
 #'
-#' @return A plot showing the effect of the IbEx on the overall inflation rate 
-#' decomposed between energy and non-energy inflation.
+#' @return ggplot object showing the effect of the IbEx on the overall inflation
+#' rate decomposed between energy and non-energy inflation.
 #'
 plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
   

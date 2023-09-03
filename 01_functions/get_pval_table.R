@@ -6,9 +6,9 @@
 #' Iberian exception mechanism on different price indicators for Spain and 
 #' Portugal, as well as the p-values of each estimate.
 #'
-#' @param dfs A list with dataframes returned by inference_sc().
+#' @param dfs List with dataframes returned by inference_sc().
 #'
-#' @return A dataframe with average treatment effects across periods for
+#' @return Dataframe with average treatment effects across periods for
 #' different outcomes and treated units.
 #'
 get_pval_table = function(dfs) {

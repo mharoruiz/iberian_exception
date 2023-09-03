@@ -9,10 +9,10 @@
 #' Spain and Portugal given outcome variables and length of pre-treatment
 #' periods.
 #'
-#' @param outcomes A list of outcomes to compute synthetic controls for.
-#' @param T0s  A list of sizes of pre-treatment periods. Must be same length
+#' @param outcomes Matrix of outcomes to compute synthetic controls for.
+#' @param T0s Matrix of sizes of pre-treatment periods. Must be same length
 #' as outcomes.
-#' @param precision A float between 0 and 1 which defines the step of the grid-
+#' @param precision Float between 0 and 1 which defines the step of the grid-
 #' search space to find confidence intervals.
 #' @param compute_ci Boolean to compute 90 %confidence intervals or not. If
 #' set to TRUE, run-time will increase significantly. Default: FALSE.
@@ -20,7 +20,7 @@
 #' will be set depending on the precision. For example, setting precision=.01
 #' will return a file named sc_series_01.csv. Default: TRUE.
 #'
-#' @return A dataframe with synthetic and observed series for the given
+#' @return Dataframe with synthetic and observed series for the given
 #' outcomes and T0s, either as a csv or as a output.
 #'
 estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
@@ -78,18 +78,18 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   end_date = as.Date("2023-06-01")
   
   log_info("Loading data")
-  # Import day-ahead auction data
+  # Import day-ahead price data
   daa_df_raw = read_csv("02_data/day_ahead_price.csv", show_col_types = FALSE)
   # Import CPI at constant taxes
   if (file.exists("02_data/cpi_index.csv")) {
     hicp_df_raw = read_csv("02_data/cpi_index.csv", show_col_types = FALSE)
   } else {
     hicp_df_raw = get_eurostat("prc_hicp_cind", time_format="date")
-    log_info("Saving CPI data to data/cpi_index.csv")
+    log_info("Saving CPI data to 02_data/cpi_index.csv")
     write_csv(hicp_df_raw, "02_data/cpi_index.csv")
   }
 
-  # Raise error
+  # Raise errors
   not_supported = NULL
   for (out in outcomes) {
     if (out != "DAA" & !(out %in% hicp_df_raw$coicop)) {
@@ -153,7 +153,7 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
 
   # One iteration for each treated unit
   for (tu in treated_units) {
-    log_info(paste("Treated unit:", tu))
+    log_info(sprintf("Treated unit: %s", tu))
     # Identify the other treated unit
     n_treated = ifelse(tu == "ES", "PT", "ES")
 
@@ -163,7 +163,9 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
       out = outcomes[i]
       # Define length of pre-treatment period
       T0 = T0s[i]
-      log_info(paste0("  Outcome: ", out, " - T0: ", T0))
+      log_info(
+        sprintf("  Outcome: %s - T0: %s months", out, T0)
+      )
       # Final data processing
       if (out == "DAA") {
         # Remove other treated unit from sample + units with inconsistent data
@@ -211,23 +213,16 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
       gaps = estimate$u.hat
       # Approximate range of CI from difference between observed and synthetic series
       if (compute_ci == TRUE) {
-        sf = nchar(str_split(precision, "\\.")[[1]][2])
-        max_gap = round(max(gaps[seq(T0 + 1, T01), ]), sf)
-        min_gap = round(min(gaps[seq(T0 + 1, T01), ]), sf)
-        range_gap = round(abs(max(gaps) - min(gaps)), sf)
-        if (out == "DAA") {
-          grid = seq(
-            from = min_gap - (.2 * range_gap),
-            to = max_gap + (.1 * range_gap),
-            by = precision
-          )
-        } else {
-          grid = seq(
-            from = min_gap - (.4 * range_gap),
-            to = max_gap + (.2 * range_gap),
-            by = precision
-          )
-        }
+        factor = mean(gaps[1:T0])/mean(gaps[T0+1:T1])
+        decimal_plc = nchar(str_split(precision, "\\.")[[1]][2])
+        min_gap = round(min(gaps[T0+1:T1]), decimal_plc)
+        max_gap = round(max(gaps[T0+1:T1]), decimal_plc)
+        gap_range = abs(max_gap - min_gap)
+        grid = seq(
+          from = min_gap - abs(min_gap * factor),
+          to = max_gap + abs(max_gap * factor),
+          by = precision
+        )
       }
       ci_found = FALSE
       # Estimate CIs
@@ -255,21 +250,21 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
           if (min(grid) %in% result$lb & max(grid) %in% result$ub) {
             log_info("      Both bounds updated")
             grid = seq(
-              from = round(min(grid) * 1.2, sf),
-              to = round(max(grid) * 1.2, sf),
+              from = round(min(grid) - gap_range*.33, decimal_plc),
+              to = round(min(grid) + gap_range*.33, decimal_plc),
               by = precision
             )
           } else if (max(grid) %in% result$ub) {
             log_info("      Upper bound updated")
             grid = seq(
               from = min(grid),
-              to = round(max(grid) * 1.2, sf),
+              to = round(min(grid) + gap_range*.33, decimal_plc),
               by = precision
             )
           } else if (min(grid) %in% result$lb) {
             log_info("      Lower bound updated")
             grid = seq(
-              from = round(min(grid) * 1.2, sf),
+              from = round(min(grid) - gap_range*.33, decimal_plc),
               to = max(grid),
               by = precision
             )
@@ -297,8 +292,8 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
     }
   }
 
-  # Return results as saved csv or variable
-  if (save_csv == TRUE) {
+  # Return results as saved csv or dataframe
+  if (save_csv) {
     if (!dir.exists("03_results")) dir.create("03_results")
     if (compute_ci) {
       suffix = paste0("_", str_split(precision, "\\.")[[1]][2])

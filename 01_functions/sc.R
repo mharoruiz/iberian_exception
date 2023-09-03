@@ -13,11 +13,10 @@
 #' pre and post-treatment periods.
 #' @param Y0 (T x J) matrix of outcome variable for the control units in the
 #' pre and post-treatment periods.
-#' @param lsei_type integer indicating the minimization algorithm (see
+#' @param lsei_type Integer indicating the minimization algorithm (see
 #' limSolve::lsei for details).
 #'
-#' @return
-#' A list with the following objects:
+#' @return List with the following objects:
 #' \itemize{
 #'  \item u.hat - (T x 1) matrix of differences between observed and synthetic
 #'  series

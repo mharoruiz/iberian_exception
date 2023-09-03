@@ -6,12 +6,12 @@
 #' the Iberian exception mechanism on different price outcomes for Spain and
 #' Portugal.
 #'
-#' @param df A dataframe returned by estimate_sc().
-#' @param var A string with the name of an outcome variable in df.
-#' @param plot_ci logical indicating whether to plot confidence intervals.
+#' @param df Dataframe returned by estimate_sc().
+#' @param var String with the name of an outcome variable in df.
+#' @param plot_ci Boolean indicating whether to plot confidence intervals.
 #'
-#' @return A plot showing the effects of the Iberian exception mechanism on a
-#' given outcome for Spain and Portugal.
+#' @return ggplot object showing the effects of the Iberian exception mechanism
+#' on a given outcome for Spain and Portugal.
 #'
 plot_results = function(df, var, plot_ci=FALSE) {
   

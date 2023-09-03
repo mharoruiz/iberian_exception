@@ -19,4 +19,4 @@ docker run --rm -p 8787:8787 -e DISABLE_AUTH=true -v $(pwd):/home/rstudio/iberia
 
 This command runs the container (`docker run`) from the image (`mharoruiz/ibex:v0.1`), and mounts (`-v`) the local project directory (`$(pwd)`) into the container directory (`/home/rstudio/iberian_exception`).
 
-Now you can access the image by pointing your browser to `localhost:8787`. This will open an instance of RStudio which is ready to reproduce the results. To begin the replication, first open `iberian_exception.Rproj`, and then execute `main.R` by pressing `ctrl`/`cmd`+`tab`+`S`.
+Now, you can access the container by pointing your browser to `localhost:8787`. This will open an instance of RStudio which is ready to reproduce the results. To begin the replication, open `iberian_exception/iberian_exception.Rproj` and execute `iberian_exception/main.R` by pressing `ctrl`/`cmd`+`tab`+`S`.
