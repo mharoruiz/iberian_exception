@@ -3,7 +3,7 @@
 #' Wunder, C. (2023). 
 #' 
 #' The runtime of the script is regulated by variable prc, which is defined in 
-#' line 15 and determines the precision of the confidence intervals for the 
+#' line 16 and determines the precision of the confidence intervals for the 
 #' treatment effect. By default, prc=.1, allowing for a relatively quick 
 #' execution. Note that the results presented in the paper were obtained with 
 #' prc=.001 (These results are saved in 03_results/sc_series_001.csv). 

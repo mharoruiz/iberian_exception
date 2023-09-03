@@ -224,12 +224,10 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
           by = precision
         )
       }
+      # Estimate CI
+      if (compute_ci) log_info("    Searching CI...")
       ci_found = FALSE
-      # Estimate CIs
-      if (compute_ci) {
-        log_info("    Searching CI...")
-      }
-      while (ci_found == FALSE) {
+      while (!ci_found) {
         result = scinference(
           Y1 = Y1,
           Y0 = Y0,
@@ -251,14 +249,14 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
             log_info("      Both bounds updated")
             grid = seq(
               from = round(min(grid) - gap_range*.33, decimal_plc),
-              to = round(min(grid) + gap_range*.33, decimal_plc),
+              to = round(max(grid) + gap_range*.33, decimal_plc),
               by = precision
             )
           } else if (max(grid) %in% result$ub) {
             log_info("      Upper bound updated")
             grid = seq(
               from = min(grid),
-              to = round(min(grid) + gap_range*.33, decimal_plc),
+              to = round(max(grid) + gap_range*.33, decimal_plc),
               by = precision
             )
           } else if (min(grid) %in% result$lb) {
@@ -269,8 +267,8 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
               by = precision
             )
           } else {
-            ci_found = TRUE
             log_info("    CI found!")
+            ci_found = TRUE
           }
         } else {
           ci_found = TRUE
