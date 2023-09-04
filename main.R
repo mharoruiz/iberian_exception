@@ -18,12 +18,12 @@ save_results = TRUE
 save_output = TRUE
 
 # Load required packages and functions
-suppressMessages(require(readr))
-suppressMessages(require(stringr))
-suppressMessages(require(logger))
-suppressMessages(require(tidyr))
-suppressMessages(require(dplyr))
-suppressMessages(require(ggplot2))
+require(readr)
+require(stringr)
+require(logger)
+require(tidyr)
+require(dplyr)
+require(ggplot2)
 functions = c(
   "estimate_sc",
   "inference_sc", 

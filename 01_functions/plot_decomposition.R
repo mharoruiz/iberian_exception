@@ -17,9 +17,9 @@
 plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
   
   # Attach required packages
-  suppressMessages(require(readr))
-  suppressMessages(require(ggplot2))
-  suppressMessages(require(dplyr))
+  require(readr)
+  require(ggplot2)
+  require(dplyr)
 
   # Raise errors
   expected_colnames = c(
