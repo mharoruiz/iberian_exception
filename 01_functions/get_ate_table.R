@@ -17,9 +17,9 @@
 get_ate_table = function(df, unit) {
   
   # Attach required packages
-  require(lubridate)
-  require(tidyr)
-  require(dplyr)
+  library(lubridate)
+  library(tidyr)
+  library(dplyr)
 
   # Raise errors
   supported_units = c("idx", "rate")

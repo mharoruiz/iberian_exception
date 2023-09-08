@@ -15,9 +15,9 @@
 #'
 plot_results = function(df, var, plot_ci=FALSE) {
   
-  # Install/attach required packages
-  require(ggplot2)
-  require(dplyr)
+  # Attach required packages
+  library(ggplot2)
+  library(dplyr)
 
   # Raise errors
   expected_colnames = c(

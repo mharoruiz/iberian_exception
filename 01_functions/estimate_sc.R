@@ -26,13 +26,13 @@
 estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   
   # Attach required packages and functions
-  require(readr)
-  require(tidyr)
-  require(dplyr)
-  require(stringr)
-  require(eurostat)
-  require(logger)
-  require(scinference)
+  library(readr)
+  library(tidyr)
+  library(dplyr)
+  library(stringr)
+  library(eurostat)
+  library(logger)
+  library(scinference)
   source("01_functions/sc.R")
 
   # Raise errors
@@ -243,7 +243,7 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
           ci_grid = grid,
           lsei_type = 2
         )
-        # Update grid as required or continue
+        # Update grid as libraryd or continue
         if (compute_ci) {
           if (min(grid) %in% result$lb & max(grid) %in% result$ub) {
             log_info("      Both bounds updated")

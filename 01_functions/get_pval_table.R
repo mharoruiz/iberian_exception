@@ -14,8 +14,8 @@
 get_pval_table = function(dfs) {
   
   # Attach required packages
-  require(tidyr)
-  require(dplyr)
+  library(tidyr)
+  library(dplyr)
 
   # Raise errors
   expected_colnames = c("outcome", "treated", "period", "p_val")
