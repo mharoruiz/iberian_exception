@@ -189,6 +189,7 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
       # Extract outcome for treated unit from data
       Y1 = sc_df |>
         filter(country == tu) |>
+        arrange(date) |>
         select(all_of(out)) |>
         slice_tail(n = T01) |>
         as.matrix() |>
@@ -197,11 +198,16 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
       Y0 = sc_df |>
         filter(country != tu) |>
         select(date, country, all_of(out)) |>
+        arrange(date) |>
         pivot_wider(names_from = country, values_from = all_of(out)) |>
         select(-date) |>
         slice_tail(n = T01) |>
+        select_if(~ !any(is.na(.))) |>
         as.matrix() |>
         unname()
+      log_info(
+        sprintf("  %s units in donor pool", dim(Y0)[2])
+      )
       # Estimate synthetic controls
       y1 = Y1[1:T0, ]
       y0 = Y0[1:T0, ]

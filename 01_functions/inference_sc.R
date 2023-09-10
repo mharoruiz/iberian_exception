@@ -281,6 +281,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
         # Extract outcome for treated unit from data
         Y1 = sc_df |>
           filter(country == tu) |>
+          arrange(date) |>
           select(all_of(out)) |>
           slice_tail(n = T01) |>
           as.matrix() |>
@@ -289,12 +290,16 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
         Y0 = sc_df |>
           filter(country != tu) |>
           select(date, country, all_of(out)) |>
+          arrange(date) |>
           pivot_wider(names_from = country, values_from = all_of(out)) |>
           select(-date) |>
           slice_tail(n = T01) |>
+          select_if(~ !any(is.na(.))) |>
           as.matrix() |>
           unname()
-
+        log_info(
+          sprintf("  %s units in donor pool", dim(Y0)[2])
+          )
         # Estimate p-values
         result = scinference(
           Y1 = Y1,
