@@ -14,12 +14,13 @@
 #' @return ggplot object showing the effect of the IbEx on the overall inflation
 #' rate decomposed between energy and non-energy inflation.
 #'
-plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
+plot_decomposition = function(df, treated_unit, vars, plot_ci=FALSE) {
   
   # Attach required packages
   library(readr)
   library(ggplot2)
   library(dplyr)
+  library(lubridate)
 
   # Raise errors
   expected_colnames = c(
@@ -73,13 +74,11 @@ plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
 
   # Filter and process SC results
   sc_results = df |>
-    filter(treated == treated_unit &
+    filter(
+      treated == treated_unit &
       date >= as.Date("2022-06-01") &
-      (
-        outcome == "CP00" |
-          outcome == "NRG" |
-          outcome == "TOT_X_NRG"
-      )) |>
+      outcome %in% c("CP00", vars)  
+      )|>
     mutate(
       date = as.Date(date),
       year = year(date)
@@ -105,45 +104,52 @@ plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
     select(date, outcome, w_gaps)
 
   ### Prepare data for plotting
+  
+  series_names = c(
+    paste0(vars[1], "(w)"),
+    paste0(vars[2], "(w)"),
+    paste0(vars[1], "(w)+", vars[2], "(w)")
+  )
+  
+  subplot_names = paste("CP00 vs", series_names)
 
   # Define treatment date
   treatment = as.Date("2022-07-01")
-  # Create dataframe with only CP00
-  sc_w_cp00 = sc_w |>
+  # Create dataframe with only var1
+  sc_w_var1 = sc_w |>
     filter(outcome == "CP00")
-  # Create dataframe with only NRG and merge with CP00
+  # Create dataframe with only var2 and var1
   subplot_1 = sc_w |>
-    filter(outcome == "NRG") |>
-    mutate(outcome = "NRG(w)") |>
-    rbind(sc_w_cp00) |>
-    mutate(subplot = "CP00 vs NRG(w)")
-  # Create dataframe with only CP00xNRG and merge with CP00
+    filter(outcome ==  vars[1]) |>
+    mutate(outcome = series_names[1]) |>
+    rbind(sc_w_var1) |>
+    mutate(subplot = subplot_names[1])
+  # Create dataframe with only var3 and merge with var1
   subplot_2 = sc_w |>
-    filter(outcome == "TOT_X_NRG") |>
-    mutate(outcome = "CP00xNRG(w)") |>
-    rbind(sc_w_cp00) |>
-    mutate(subplot = "CP00 vs CP00xNRG(w)")
-  # Create dataframe with only NRG+CP00xNRG and merge with CP00
+    filter(outcome == vars[2]) |>
+    mutate(outcome = series_names[2]) |>
+    rbind(sc_w_var1) |>
+    mutate(subplot = subplot_names[2])
+  # Create dataframe with only var2+var3 and merge with var1
   subplot_3 = sc_w |>
     filter(outcome != "CP00") |>
     group_by(date) |>
     summarise_at(c("w_gaps"), sum) |>
     ungroup() |>
-    mutate(outcome = "NRG(w)+CP00xNRG(w)") |>
-    rbind(sc_w_cp00) |>
-    mutate(subplot = "CP00 vs NRG(w)+CP00xNRG(w)")
+    mutate(outcome = series_names[3]) |>
+    rbind(sc_w_var1) |>
+    mutate(subplot = subplot_names[3])
   # Merge all individual dataframes
   d_plot = rbind(subplot_1, subplot_2, subplot_3) |>
     filter(date >= treatment) |>
     mutate(
       subplot = factor(
         subplot,
-        levels =
-          c(
-            "CP00 vs NRG(w)",
-            "CP00 vs CP00xNRG(w)",
-            "CP00 vs NRG(w)+CP00xNRG(w)"
-          )
+        levels = subplot_names
+      ),
+      outcome = factor(
+        outcome,
+        levels = c("CP00", series_names)
       )
     )
 
@@ -169,10 +175,10 @@ plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
     scale_fill_manual(
       values =
         c(
-          "CP00" = "black",
-          "NRG(w)" = "dodgerblue3",
-          "CP00xNRG(w)" = "goldenrod",
-          "NRG(w)+CP00xNRG(w)" = "springgreen4"
+         "black",
+         "dodgerblue3",
+         "goldenrod",
+         "springgreen4"
         )
     ) +
     # Plot lines
@@ -181,10 +187,10 @@ plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
     scale_color_manual(
       values =
         c(
-          "CP00" = "black",
-          "NRG(w)" = "dodgerblue3",
-          "CP00xNRG(w)" = "goldenrod",
-          "NRG(w)+CP00xNRG(w)" = "springgreen4"
+           "black",
+           "dodgerblue3",
+           "goldenrod",
+           "springgreen4"
         )
     ) +
     # Remove axis labels
@@ -199,7 +205,9 @@ plot_decomposition = function(df, treated_unit, plot_ci=FALSE) {
       plot.background = element_rect(
         color = "white",
         fill = "white"
-      )
+      ),
+      legend.position="bottom",
+      legend.title = element_blank()
     )
 
   return(plot)
