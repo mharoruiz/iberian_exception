@@ -11,7 +11,7 @@
 #' @param outcomes Matrix of outcomes to compute synthetic controls for.
 #' @param T0s  Matrix of sizes of pre-treatment periods. Must be same length
 #' as outcomes.
-#' @param break_poitns Object of class "Date" or a list containing "Date"
+#' @param T1_breaks Object of class "Date" or a vector containing "Date"
 #' class objects. Break points will be used to divide the post-treatment
 #' period into sub-periods and compute p-values across them. The post-
 #' treatment period ranges from  07/2022 to  06/2023 so T1_breaks must be

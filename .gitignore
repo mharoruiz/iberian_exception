@@ -3,6 +3,7 @@
 /02_data/cpi_index.csv
 /03_results/sc_series_1.csv
 /03_results/sc_series_01.csv
+/05_exploration
 Dockerfile
 .dockerignore
 .Rhistory

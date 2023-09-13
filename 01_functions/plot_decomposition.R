@@ -6,7 +6,15 @@
 #' Iberian exception mechanism between energy and non-energy inflation for Spain 
 #' and Portugal.
 #'
-#' @param df Dataframe returned by estimate_sc().
+#' @param df Dataframe returned by estimate_sc(). The values in the outcome 
+#' column must be "CP00" as well as a series of disaggregated CPI series whose 
+#' assigned weight add up to 1.
+#' @param whole_var String indicating 
+#' @param sub_vars a vector of CPI aggregation codes included in the outcome 
+#' column of the provided df. It is required that the sum of the weights of the 
+#' CPI codes provided adds up to 1. For example, c("NRG", "TOT_X_NRG") i.e., 
+#' energy-only and non-energy CPIs, or c("GD", "SERV") i.e., goods-only and 
+#' services-only CPIs. 
 #' @param treated_unit String indicating the treated unit to plot results for.
 #' "ES" to plot results for Spain or "PT" to plot results for Portugal.
 #' @param plot_ci Boolean indicating whether to plot confidence intervals.
@@ -14,7 +22,7 @@
 #' @return ggplot object showing the effect of the IbEx on the overall inflation
 #' rate decomposed between energy and non-energy inflation.
 #'
-plot_decomposition = function(df, treated_unit, vars, plot_ci=FALSE) {
+plot_decomposition = function(df, whole_var, sub_vars, treated_unit, plot_ci=FALSE) {
   
   # Attach required packages
   library(readr)
@@ -71,19 +79,16 @@ plot_decomposition = function(df, treated_unit, vars, plot_ci=FALSE) {
       )
     )
   }
-
-  # Filter and process SC results
-  sc_results = df |>
-    filter(
-      treated == treated_unit &
-      date >= as.Date("2022-06-01") &
-      outcome %in% c("CP00", vars)  
-      )|>
-    mutate(
-      date = as.Date(date),
-      year = year(date)
-    ) |>
-    select(date, outcome, gaps, year)
+  all_vars = c(whole_var, sub_vars)
+  if (sum(!(all_vars %in% unique(df$outcome))) != 0){
+    stop(
+      sprintf(
+        "outcome(s) %s must be present in df$outcome",
+        all_vars[which(!(all_vars %in% unique(df$outcome)))]
+      )
+    )
+  }
+  
   # Import CPI weights weights data
   if (file.exists("02_data/cpi_weights.csv")) {
     w_raw = read_csv("02_data/cpi_weights.csv", show_col_types = FALSE)
@@ -92,55 +97,106 @@ plot_decomposition = function(df, treated_unit, vars, plot_ci=FALSE) {
     log_info("Saving CPI weights data to data/cpi_weights.csv")
     write_csv(w_raw, "02_data/cpi_weights.csv")
   }
-  
   # Filter and process weights
-  w = w_raw |>
+  w_df = w_raw |>
     filter(geo == treated_unit) |>
     mutate(w = values * 0.001) |>
     select(outcome = coicop, w, year = time)
+  
+  # Raise errors
+  if (sum(!(all_vars %in% unique(w_df$outcome))) != 0) {
+    stop(
+      sprintf(
+        "The following outcomes are not supported vars: %s",
+        all_vars[which(!(all_vars %in% unique(w_df$outcome)))]
+      )
+    )
+  }
+  w_sub_vars = w_df |>
+    filter(year == 2023 & outcome %in% sub_vars)
+  w_whole_var = w_df |>
+    filter(year == 2023 & outcome %in% whole_var)
+  if (round(sum(w_sub_vars$w), 3) != round(w_whole_var$w, 3)) {
+    stop(
+      sprintf(
+        "The sum of the weights assinged to 'sub_vars'and the weight assinged to 'whole_var' must be equal. 
+        - Sum of sub_vars weights: %s
+        - whole_var weight: %s",
+        sum(w_sub_vars$w),
+        w_whole_var$w
+      )
+    )
+  }
+  
+  # Filter and process SC results
+  sc_results = df |>
+    filter(
+      treated == treated_unit &
+      date >= as.Date("2022-06-01") &
+      outcome %in% c(whole_var, sub_vars)  
+      )|>
+    mutate(
+      date = as.Date(date),
+      year = year(date)
+    ) |>
+    select(date, outcome, gaps, year)
+  
   # Merge SC results and weights datasets
-  sc_w = inner_join(sc_results, w, by = c("outcome", "year")) |>
+  sc_w = inner_join(sc_results, w_df, by = c("outcome", "year")) |>
     mutate( w_gaps = w * gaps) |>
     select(date, outcome, w_gaps)
 
   ### Prepare data for plotting
-  
+  # Define series names
+  series_names = NULL
+  for (v in 1:length(sub_vars)) {
+    series_names = c(
+      series_names, 
+      paste0(sub_vars[v], "(w)")
+      )
+    if (v == 1) {
+      last_series_name = paste0(sub_vars[v], "(w)")
+    } else {
+      last_series_name = paste(
+        last_series_name,
+        paste0(sub_vars[v], "(w)"),
+        sep = "+"
+      )
+    }
+  }
   series_names = c(
-    paste0(vars[1], "(w)"),
-    paste0(vars[2], "(w)"),
-    paste0(vars[1], "(w)+", vars[2], "(w)")
+    series_names,
+    last_series_name
   )
-  
-  subplot_names = paste("CP00 vs", series_names)
-
+  # Define subplot names
+  subplot_names = paste(whole_var, "vs", series_names)
   # Define treatment date
   treatment = as.Date("2022-07-01")
-  # Create dataframe with only var1
-  sc_w_var1 = sc_w |>
-    filter(outcome == "CP00")
-  # Create dataframe with only var2 and var1
-  subplot_1 = sc_w |>
-    filter(outcome ==  vars[1]) |>
-    mutate(outcome = series_names[1]) |>
-    rbind(sc_w_var1) |>
-    mutate(subplot = subplot_names[1])
-  # Create dataframe with only var3 and merge with var1
-  subplot_2 = sc_w |>
-    filter(outcome == vars[2]) |>
-    mutate(outcome = series_names[2]) |>
-    rbind(sc_w_var1) |>
-    mutate(subplot = subplot_names[2])
-  # Create dataframe with only var2+var3 and merge with var1
-  subplot_3 = sc_w |>
-    filter(outcome != "CP00") |>
-    group_by(date) |>
-    summarise_at(c("w_gaps"), sum) |>
-    ungroup() |>
-    mutate(outcome = series_names[3]) |>
-    rbind(sc_w_var1) |>
-    mutate(subplot = subplot_names[3])
-  # Merge all individual dataframes
-  d_plot = rbind(subplot_1, subplot_2, subplot_3) |>
+  # Create dataframe with whole var
+  whole_var_w = sc_w |>
+    filter(outcome == whole_var)
+  # Create dataframe for plotting
+  d_plot = NULL
+  for (v in 1:(length(sub_vars)+1)) {
+    if (v == length(sub_vars)+1) {
+      subplot= sc_w |>
+        filter(outcome != whole_var) |>
+        group_by(date) |>
+        summarise_at(c("w_gaps"), sum) |>
+        ungroup() |>
+        mutate(outcome = series_names[v]) |>
+        rbind(whole_var_w) |>
+        mutate(subplot = subplot_names[v])
+    } else {
+      subplot = sc_w |>
+        filter(outcome ==  sub_vars[v]) |>
+        mutate(outcome = series_names[v]) |>
+        rbind(whole_var_w) |>
+        mutate(subplot = subplot_names[v])
+    }
+    d_plot = rbind(d_plot, subplot)
+  }
+  d_plot = d_plot |>
     filter(date >= treatment) |>
     mutate(
       subplot = factor(
@@ -149,7 +205,7 @@ plot_decomposition = function(df, treated_unit, vars, plot_ci=FALSE) {
       ),
       outcome = factor(
         outcome,
-        levels = c("CP00", series_names)
+        levels = c(whole_var, series_names)
       )
     )
 

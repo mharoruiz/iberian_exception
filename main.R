@@ -3,13 +3,24 @@
 #' Wunder, C. (2023). 
 #' 
 #' The runtime of the script is regulated by constant PRC_STEP, which is defined 
-#' in line 37 and determines the precision of the confidence intervals for the 
+#' in line 21 and determines the precision of the confidence intervals for the 
 #' treatment effect. By default, PRC_STEP=.1, allowing for a relatively quick
 #' execution. Note that the results presented in the paper were obtained with 
 #' PRC_STEP=.001 (These results are saved to 03_results/sc_series_001.csv). 
 #'
 rm(list=ls())
 set.seed(51231)
+
+# Define constants 
+SUB_VARS = c("NRG", "TOT_X_NRG")
+WHOLE_VAR = "CP00"
+CPI_VARS = c(SUB_VARS, WHOLE_VAR)
+INPUT_VARS = c("DAA", CPI_VARS)
+PRE_TREATMENT_PERIODS = c(89, 108, 108, 108)
+CONFIDENCE_INTERVALS = TRUE
+if (CONFIDENCE_INTERVALS) PRC_STEP = .1 # Define step size for confidence interval grid-search
+SAVE_RESULTS = TRUE
+SAVE_ANALYSIS = TRUE
 
 # Load required packages and functions
 library(readr)
@@ -29,14 +40,6 @@ functions = c(
 invisible(
   lapply(paste0("01_functions/", functions, ".R"), source)
 )
-
-# Define constants 
-INPUT_VARS = c("DAA", "NRG", "CP00", "TOT_X_NRG")
-PRE_TREATMENT_PERIODS = c(89, 108, 108, 108)
-CONFIDENCE_INTERVALS = TRUE
-if (CONFIDENCE_INTERVALS) PRC_STEP = .1 # Define step size for confidence interval grid-search
-SAVE_RESULTS = TRUE
-SAVE_ANALYSIS = TRUE
 
 ### Compute results
 
@@ -79,7 +82,7 @@ sc_inf_6_6 = read_csv("03_results/sc_inference_6_6.csv", show_col_types = FALSE)
 
 # Compute synthetic and observed year-on-year inflation rate from CPI series
 sc_inflation_rate = sc_series |>
-  filter(outcome %in% INPUT_VARS) |>
+  filter(outcome %in% CPI_VARS) |>
   group_by(outcome, treated) |>
   mutate(
     obs = (obs - lag(obs, n = 12L))/lag(obs, n = 12L)*100, 
@@ -117,7 +120,7 @@ fig_2 = plot_results(
 ### Fig 3. Observed and Synthetic overall CPI series, and difference between them with 90% CIs.
 fig_3 = plot_results(
   df = sc_series, 
-  var = INPUT_VARS[3], 
+  var = INPUT_VARS[4], 
   plot_ci = CONFIDENCE_INTERVALS
   ) +
   labs(
@@ -128,7 +131,8 @@ fig_3 = plot_results(
 ### Fig 4. Decomposition of the effect on Spain’s inflation rate.
 fig_4 = plot_decomposition(
   df = sc_inflation_rate, 
-  vars = INPUT_VARS[c(2,4)],
+  whole_var = WHOLE_VAR,
+  sub_vars = SUB_VARS, 
   treated_unit = "ES"
   ) +
   labs(
@@ -165,21 +169,21 @@ table_A1 = inner_join(ate_tab, pval_tab, by = c("outcome", "period")) |>
   arrange(outcome, period)
 
 ### Fig. B1. Observed and synthetic energy inflation rate series, and difference between them.
-fig_B1 = plot_results(df = sc_inflation_rate, var = INPUT_VARS[2]) +
+fig_B1 = plot_results(df = sc_inflation_rate, var = CPI_VARS[1]) +
   labs(
     title = "Effect of the IbEx on energy inflation rate",
     subtitle = "%, year-on-year inflation rate"
     )
 
 ### Fig. B2. Observed and synthetic overall inflation rate series, and difference between them.
-fig_B2 = plot_results(df = sc_inflation_rate, var = INPUT_VARS[3]) +
+fig_B2 = plot_results(df = sc_inflation_rate, var = CPI_VARS[3]) +
   labs(
     title = "Effect of the IbEx on overall inflation rate",
     subtitle = "%, year-on-year inflation rate"
   )
 
 ### Fig. B3. Observed and synthetic overall inflation rate series, and difference between them.
-fig_B3 = plot_results(df = sc_inflation_rate, var = INPUT_VARS[4]) +
+fig_B3 = plot_results(df = sc_inflation_rate, var = CPI_VARS[2]) +
   labs(
     title = "Effect of the IbEx on overall inflation rate excluding energy",
     subtitle = "%, year-on-year inflation rate"
@@ -202,7 +206,8 @@ fig_C1 = plot_results(
 ### Fig. C2. Decomposition of the effect on Spain’s inflation rate.
 fig_C2 = plot_decomposition(
   df = sc_inflation_rate, 
-  vars = INPUT_VARS[c(2, 4)], 
+  whole_var = WHOLE_VAR,
+  sub_vars = SUB_VARS, 
   treated_unit = "PT"
   ) +
   labs(
@@ -244,4 +249,3 @@ if (SAVE_ANALYSIS) {
     )
   }
 }
-
