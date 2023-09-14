@@ -254,30 +254,10 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
               )
           )
 
-        # Define length of T1
+        # Define T1 propperties
         T1_dates = unique(sc_df$date[sc_df$post_treatment == TRUE])
         min_date = min(T1_dates)
         max_date = max(T1_dates)
-        
-        T1_range = paste0(
-          ifelse( 
-            nchar(month(min_date)) == 1, 
-            paste0(0, month(min_date)),
-            month(min_date)
-            ),
-          "/",
-          year(min_date),
-          " - ",
-          ifelse( 
-            nchar(month(max_date)) == 1, 
-            paste0(0, month(max_date)),
-            month(max_date)
-          ), 
-          "/",
-          year(max_date)
-        )
-        
-        
         T1 = length(T1_dates)
         if (sp == 1) suffix = T1 else suffix = paste(suffix, T1, sep = "_")
         # Define total length of period
