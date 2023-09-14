@@ -12,7 +12,7 @@ rm(list=ls())
 set.seed(51231)
 
 # Define constants 
-SUB_VARS = c("NRG", "TOT_X_NRG")
+SUB_VARS = c("NRG", "CP00xNRG")
 WHOLE_VAR = "CP00"
 CPI_VARS = c(SUB_VARS, WHOLE_VAR)
 INPUT_VARS = c("DAA", CPI_VARS)
@@ -117,14 +117,14 @@ fig_2 = plot_results(
     subtitle = "Index, 2015=100 - 90% confidence intervals"
   )
 
-### Fig 3. Observed and Synthetic overall CPI series, and difference between them with 90% CIs.
+### Fig 3. Observed and Synthetic all-items CPI series, and difference between them with 90% CIs.
 fig_3 = plot_results(
   df = sc_series, 
   var = INPUT_VARS[4], 
   plot_ci = CONFIDENCE_INTERVALS
   ) +
   labs(
-    title = "Effect of the IbEx on overall CPI",
+    title = "Effect of the IbEx on all-items CPI",
     subtitle = "Index, 2015=100 - 90% confidence intervals"
   )
 
@@ -140,15 +140,19 @@ fig_4 = plot_decomposition(
     subtitle = "%, year-on-year inflation rate"
   )
   
-### Table A1
+### Table A1. Mean effect of the IbEx on different outcomes and time periods
 # ATEs and confidence intervals
-ate_tab = get_ate_table(df = sc_series, unit = "idx")
+ate_tab = get_ate_table(
+  df = sc_series,
+  T1_breaks = c(as.Date("2022-12-01")), 
+  unit = "idx"
+  )
 # P-values
 pval_tab = get_pval_table(dfs = list(sc_inf_12, sc_inf_6_6))
 # Replicate Table A1
-table_A1 = inner_join(ate_tab, pval_tab, by = c("outcome", "period")) |>
+table_A1 = inner_join(ate_tab, pval_tab, by = c("outcome", "from", "to")) |>
   select(
-    outcome, period, 
+    outcome, from, to,
     ate_ES, ate_lower_ES, ate_upper_ES, pval_ES,
     ate_PT, ate_lower_PT, ate_upper_PT, pval_PT
     ) |>
@@ -157,16 +161,9 @@ table_A1 = inner_join(ate_tab, pval_tab, by = c("outcome", "period")) |>
       factor(
         outcome,
         levels = INPUT_VARS
-      ),
-    period = 
-      factor(
-        period,
-        levels = c(
-          "07/2022 - 06/2023", "07/2022 - 12/2022", "01/2023 - 06/2023"
-          )
       )
   ) |>
-  arrange(outcome, period)
+  arrange(outcome, from, desc(to))
 
 ### Fig. B1. Observed and synthetic energy inflation rate series, and difference between them.
 fig_B1 = plot_results(df = sc_inflation_rate, var = CPI_VARS[1]) +
@@ -175,31 +172,31 @@ fig_B1 = plot_results(df = sc_inflation_rate, var = CPI_VARS[1]) +
     subtitle = "%, year-on-year inflation rate"
     )
 
-### Fig. B2. Observed and synthetic overall inflation rate series, and difference between them.
+### Fig. B2. Observed and synthetic all-items inflation rate series, and difference between them.
 fig_B2 = plot_results(df = sc_inflation_rate, var = CPI_VARS[3]) +
   labs(
-    title = "Effect of the IbEx on overall inflation rate",
+    title = "Effect of the IbEx on all-items inflation rate",
     subtitle = "%, year-on-year inflation rate"
   )
 
-### Fig. B3. Observed and synthetic overall inflation rate series, and difference between them.
+### Fig. B3. Observed and synthetic all-items inflation rate series, and difference between them.
 fig_B3 = plot_results(df = sc_inflation_rate, var = CPI_VARS[2]) +
   labs(
-    title = "Effect of the IbEx on overall inflation rate excluding energy",
+    title = "Effect of the IbEx on all-items inflation rate excluding energy",
     subtitle = "%, year-on-year inflation rate"
   )
 
-### Table B1
+### Table B1. Mean effect of the IbEx on the year-on-year inflation rate for different CPI aggregations and time periods
 table_B1 = get_ate_table(df = sc_inflation_rate, unit = "rate")
 
-### Fig. C1. Observed and Synthetic overall CPI excluding energy series, and difference between them with 90% CIs.
+### Fig. C1. Observed and Synthetic all-items CPI excluding energy series, and difference between them with 90% CIs.
 fig_C1 = plot_results(
   df = sc_series, 
-  var = INPUT_VARS[4], 
+  var = INPUT_VARS[3], 
   plot_ci = CONFIDENCE_INTERVALS
   ) +
   labs(
-    title = "Effect of the IbEx on overall CPI excluding energy",
+    title = "Effect of the IbEx on all-items CPI excluding energy",
     subtitle = "Index, 2015=100 - 90% confidence intervals"
   )
 

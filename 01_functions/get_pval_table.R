@@ -18,7 +18,7 @@ get_pval_table = function(dfs) {
   library(dplyr)
 
   # Raise errors
-  expected_colnames = c("outcome", "treated", "period", "p_val")
+  expected_colnames = c("outcome", "treated", "from", "to", "p_val")
   for (i in 1:length(dfs)) {
     missing_colnames = !(expected_colnames %in% colnames(dfs[[i]]))
     if (sum(missing_colnames) != 0) {
@@ -44,8 +44,8 @@ get_pval_table = function(dfs) {
   }
   # Format table
   pval_table = pval_table |>
-    arrange(outcome, treated, period) |>
-    select(outcome, treated, period, p_val) |>
+    arrange(outcome, treated, from, desc(to)) |>
+    select(outcome, treated, from, to, p_val) |>
     pivot_wider(
       names_from = treated,
       values_from = p_val,

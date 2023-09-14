@@ -132,6 +132,15 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   }
 
   # Raise errors
+  hicp_df_raw = hicp_df_raw |>
+    mutate(
+      coicop =
+        case_when(
+          coicop == "TOT_X_NRG" ~ "CP00xNRG",
+          coicop == "NNRG_IGD" ~ "IGDxNRG",
+          TRUE ~ coicop
+        )
+    )
   not_supported = NULL
   for (out in outcomes) {
     if (out != "DAA" & !(out %in% hicp_df_raw$coicop)) {
@@ -249,6 +258,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
         T1_dates = unique(sc_df$date[sc_df$post_treatment == TRUE])
         min_date = min(T1_dates)
         max_date = max(T1_dates)
+        
         T1_range = paste0(
           ifelse( 
             nchar(month(min_date)) == 1, 
@@ -266,14 +276,8 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
           "/",
           year(max_date)
         )
-        log_info(
-          sprintf(
-            "    T1.%s: %s %s",
-            sp,
-            length(T1_dates),
-            ifelse(length(T1_dates) > 1, "months", "month")
-          )
-        )
+        
+        
         T1 = length(T1_dates)
         if (sp == 1) suffix = T1 else suffix = paste(suffix, T1, sep = "_")
         # Define total length of period
@@ -300,6 +304,14 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
         log_info(
           sprintf("  %s units in donor pool", dim(Y0)[2])
           )
+        log_info(
+          sprintf(
+            "    T1.%s: %s %s",
+            sp,
+            length(T1_dates),
+            ifelse(length(T1_dates) > 1, "months", "month")
+          )
+        )
         # Estimate p-values
         result = scinference(
           Y1 = Y1,
@@ -322,7 +334,8 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
           T0 = T0,
           outcome = out,
           treated = tu,
-          period = T1_range
+          from = min_date,
+          to = max_date
         )
         agg_inference = rbind(agg_inference, inference)
       }

@@ -9,12 +9,12 @@
 #' @param df Dataframe returned by estimate_sc(). The values in the outcome 
 #' column must be "CP00" as well as a series of disaggregated CPI series whose 
 #' assigned weight add up to 1.
-#' @param whole_var String indicating 
-#' @param sub_vars a vector of CPI aggregation codes included in the outcome 
-#' column of the provided df. It is required that the sum of the weights of the 
-#' CPI codes provided adds up to 1. For example, c("NRG", "TOT_X_NRG") i.e., 
-#' energy-only and non-energy CPIs, or c("GD", "SERV") i.e., goods-only and 
-#' services-only CPIs. 
+#' @param sub_vars Vector containing the string names of 2 CPI aggregation 
+#' codes included in the outcome column of the provided df. The 2 indices in 
+#' sub_vars must add up to the index in whole_var.
+#' @param whole_var String with the name of 1 CPI aggregation code included in 
+#' the outcome column of the provided df. This index must result from the 
+#' combination of the two indices in sub_vars.
 #' @param treated_unit String indicating the treated unit to plot results for.
 #' "ES" to plot results for Spain or "PT" to plot results for Portugal.
 #' @param plot_ci Boolean indicating whether to plot confidence intervals.
@@ -31,6 +31,14 @@ plot_decomposition = function(df, whole_var, sub_vars, treated_unit, plot_ci=FAL
   library(lubridate)
 
   # Raise errors
+  if (length(SUB_VARS) != 2) {
+    stop(
+      "sub_vars must be a vector of length 2."
+      )
+  }
+  if (length(WHOLE_VAR) != 1 ) {
+    "whole_var must of length 1."
+  }
   expected_colnames = c(
     "date", "outcome", "gaps", "treated"
   )
@@ -99,6 +107,14 @@ plot_decomposition = function(df, whole_var, sub_vars, treated_unit, plot_ci=FAL
   }
   # Filter and process weights
   w_df = w_raw |>
+    mutate(
+      coicop =
+        case_when(
+          coicop == "TOT_X_NRG" ~ "CP00xNRG",
+          coicop == "NNRG_IGD" ~ "IGDxNRG",
+          TRUE ~ coicop
+        )
+    ) |>
     filter(geo == treated_unit) |>
     mutate(w = values * 0.001) |>
     select(outcome = coicop, w, year = time)

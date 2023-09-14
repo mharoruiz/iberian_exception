@@ -82,14 +82,23 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   daa_df_raw = read_csv("02_data/day_ahead_price.csv", show_col_types = FALSE)
   # Import CPI at constant taxes
   if (file.exists("02_data/cpi_index.csv")) {
-    hicp_df_raw = read_csv("02_data/cpi_index.csv", show_col_types = FALSE)
+    hicp_df_raw = read_csv("02_data/cpi_index.csv", show_col_types = FALSE) 
   } else {
-    hicp_df_raw = get_eurostat("prc_hicp_cind", time_format="date")
+    hicp_df_raw = get_eurostat("prc_hicp_cind", time_format="date") 
     log_info("Saving CPI data to 02_data/cpi_index.csv")
     write_csv(hicp_df_raw, "02_data/cpi_index.csv")
   }
-
+  
   # Raise errors
+  hicp_df_raw = hicp_df_raw |>
+    mutate(
+      coicop =
+        case_when(
+          coicop == "TOT_X_NRG" ~ "CP00xNRG",
+          coicop == "NNRG_IGD" ~ "IGDxNRG",
+          TRUE ~ coicop
+        )
+    )
   not_supported = NULL
   for (out in outcomes) {
     if (out != "DAA" & !(out %in% hicp_df_raw$coicop)) {
