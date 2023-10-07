@@ -15,7 +15,7 @@ git clone https://github.com/mharoruiz/ibex && \
 cd ibex
 ```
 
-Make sure your working directory points to the cloned repository. You can check this with `pwd` or `cd`, depending on your command line. 
+Make sure your working directory points to the cloned repository. Depending on your command line, you can check this with `pwd` or `cd`.
 
 Next, run a Docker container from an image that includes all the necessary dependencies:
 
@@ -28,15 +28,15 @@ docker run --rm \
 mharoruiz/ibex:0.1
 ```
 
-The above command creates and runs a new container (`docker run`) from the image `mharoruiz/ibex:0.1`, and mounts project files (`-v`) from your local directory as source (`$(pwd)`) to the container directory as destination (`/home/rstudio/ibex`).
+The above command creates and runs a new container (`docker run`) from the image `mharoruiz/ibex:0.1`, and mounts the project files (`-v`) from your local directory as source (`$(pwd)`) to the container directory as destination (`/home/rstudio/ibex`).
 
 ---
 
 **Troubleshooting** 
 
-Depending on the command line in your computer, you may have to use `%cd%` instead of `$(pwd)`. If none of these methods works, you can substitute the source with the absolute path to the cloned repository in your local machine (something like `C:\Users\user\ibex` or `/Users/user/ibex`). 
+Depending on the command line in your computer, you may have to use `%cd%` instead of `$(pwd)`. If none of these methods work, you can substitute the source with the absolute path to the cloned repository in your local machine (something like `/Users/user/ibex` or `C:\Users\user\ibex`). 
 
-Another source for potential errors is the `\` at the end of every line in the `docker run` command above. These allow multiline code to be executed and make the code block above easier to read than a single, long line of code. Depending on your command line, you may have to use `^` instead of `\`. However, you can also remove the linebreaks and execute the command as a single line.
+Another source for potential errors are the `\` at the end of every line in the `docker run` command above. These allow the execution of multiline and make the code block above easier to read than a single, long line of code. Depending on your command line, you may have to use `^` instead of `\`. However, you can also remove the linebreaks and execute the command as a single line.
 
 ---
 
@@ -65,42 +65,29 @@ source("~/ibex/main.R")
 
 Once `main.R` has successfully run, the figures and tables will be accessible as variables in your R environment, i.e. `fig_1`, `table_A1`. Additionally, if constant `SAVE_ANALYSIS=TRUE`, the figures and tables will be saved to `04_analysis/` as .png and .csv files.
 
+The runtime of the main.R is regulated by constant PRC_STEP, which is defined in line 21 and determines the precision of the confidence intervals for the treatment effect. By default, PRC_STEP = .1, allowing for a relatively quick execution. Note that the results presented in the paper were obtained with PRC_STEP=.001 (These results are saved to 03_results/sc_series_001.csv). 
+
 ## Exploration
 
 The script `explore.R` outlines a framework to further explore the effect of the Iberian exception mechanism on inflation using the ibex tool. In particular, it estimates the effect of the intervention on goods-only CPI and services-only CPI, as well as the inflation rates of these indicators. 
 
 Like `main.R`, `explore.R` begins defining a series of constants used throughout the script. `SUB_VARS` is a vector with CPI variables which make up `WHOLE_VAR`. In this case, the combination of GD (goods only) and SERV (services only) make up CP00 (all items). Furthermore, `PRE_TREATMENT_PERIODS` is a vector with the size of the pretreatment periods for the computation of synthetic controls for each of the variables in `INPUT_VARS`. Since `INPUT_VARS` has length 3, `PRE_TREATMENT_PERIODS` must also have length 3. 
 
-Moreover, `CONFIDENCE_INTERVALS=TRUE` and `PRC_STEP=.025`. This will result in more precise confidence intervals than the ones computed in `main.R`, where `PRC_STEP=.1`. This will come at the cost of longer runtime of the script. Feel free to try different `PRC_STEP` values and determine which one is the most appropriate. 
+Moreover, `CONFIDENCE_INTERVALS=TRUE` and `PRC_STEP=.025`. This will result in more precise confidence intervals than the ones computed in `main.R`, where `PRC_STEP=.1`. The downside of more precise CIs is that it takes longer to compute them. You are encouraged to try different `PRC_STEP` values to figure out a good compromise between precision and runtime.
 
-The function `estimate_sc()` is called in line 40 to estimate the synthetic controls for each of the CPI indicators and pre-treatment period sizes defined above. This returns a dataframe called `sc_series_exp` which will be used later on for plotting. Next, `inference_sc()` is called in line 48 to conduct inference on the estimated synthetic controls. 
+The function `estimate_sc()` is called in line 42 to estimate the synthetic controls for each of the CPI indicators and pre-treatment period sizes defined above. This returns a dataframe called `sc_series_explo` which will be used for visualizing the resutls.
+
+Next, `explore.R` uses function `plot_results()` in lines 53 and 62 to plot the observed and synthetic series as well as the difference between them, for outcomes GD and SERV. If `SAVE_OUTPUT=TRUE`, the plots will be saved in `05_exploration/` as `fig_gd.png` and `fig_serv.png`. 
+
+The scrip also calls function `plot_decomposition()` in ines 74 and 84 to visualize the effect of the Iberian exception mechanism on overall CPI as a share of the effect on goods-only and services-only CPI. The resulting plots for Spain and Portugal are saved in `05_exploration/` as `fig_decomp_es.png` and `fig_decomp_pt.png`.
 
 ---
 
 **Challenge #1**
 
-Can you create a dataframe that summarizes the results for each input variable and treated country over the entire post-treatment period? 
-
-**Hint 1:** For this challenge, you should use functions `get_ate_table()` and `get_pval_table()`. Before calling them in the script, you have to import them into your environment, either by including their string names in the `functions` vector defined in line 32, or via the following command:
-
-```R
-source("01_functions/get_ate_table.R")
-source("01_functions/get_pval_table.R")
-```
-
-Too easy for you? Are you able to create a dataframe that summarizes the results for three sub-periods in the post-treatment? The three sub-periods should be: 1)July-December 2022, 2)January-June 2023, and 3)July 2022-June 2023.
-
-**Hint 2:** The resulting dataframe should be analogous to `table_A1`, defined in `main.R`. Refer to this example as a solution for this challenge. 
-
-Can you also modify `explore.R` to automatically save the resulting dataframe to `05_exploration/ate_table.csv` when `SAVE_OUTPUT=TRUE`?
-
-**Hint 3:** `main.R` automatically saves the tables when `SAVE_OUTPUT=TRUE`. Refer to this script as a solution for the last part of this challenge.
+Create a dataframe that summarizes the results for each input variable and treated country over the entire post-treatment period. The dataframe should  show estimates in absolute and percentage terms, as well as the change in inflation rate. Refer to lines 117-171 of explore.R for a walk through solution of this exercise. 
 
 ---
-
-`explore.R` also uses function `plot_results()` to plot the observed and synthetic series as well as the difference between them, for outcomes GD and SERV. If `SAVE_OUTPUT=TRUE`, the plots will be saved in `05_exploration/` as `fig_gd.png` and `fig_serv.png`. There are two other instances of `plot_results()` in `explore.R`, which instead of plotting from `sc_series_exp`, do so from `sc_inflation_rate_exp`. The latter daframe is a transformation of the former, which contains the 12-month rate of change of the CPI outcomes, also known as the year-on-year inflation rate. The resulting plots are saved in `05_exploration/` as `fig_gd_rate.png` and `fig_serv_rate.png`.
-
-Next, the script calls function `plot_decomposition()` to visualize the effect of the Iberian exception mechanism on all-items inflation rate as a share of the effect on goods-only and services-only inflation rate. The resulting plots for Spain and Portugal are saved in `05_exploration/` as `fig_decomp_es.png` and `fig_decomp_pt.png`.
 
 ---
 
@@ -110,14 +97,10 @@ Next, the script calls function `plot_decomposition()` to visualize the effect o
 
 The figure above shows different aggregations of CPI indices and the relationship between them. For example, NRG (energy CPI) and CP00xNRG (all-items CPI excluding energy) make up CP00 (all-items CPI). Similarly, we know from `explore.R` that GD and SERV make up CP00. 
 
-For this challenge, pick any two CPI aggregations that you would like to explore. The two variables of your choice must combine into a third, broader CPI category. For example, NRG and IGDxNRG combine to form IGD. 
+For this challenge, pick any two CPI aggregations that you would like to explore. The two variables of your choice should combine into a third, broader CPI category. For example, NRG and IGDxNRG combine to form IGD. 
 
-Next, create a new R script and name it `my_exploration.R`. The script should first estimate synthetic control units for each of these CPI aggregations and conduct inference on the estimates. Use functions `estimate_sc()` and `inference_sc()` to get this done.
+Next, create a new R script and name it `my_exploration.R`. The script should first estimate synthetic control units for each of these CPI aggregations using function `estimate_sc()`.
 
-Once you do this, transform dataframe outputed by `estimate_sc()` to include the year-on-year inflation rate. Use the transformed dataframe in combination with `plot_results()` to visualize the effect of the Iberian exception on your two outcomes of choice. 
-
-Now, use functions `get_ate_table()` and `get_pval_table()` to create a dataframe that summarizes the effect of the intervention on the three outcomes you are analyzing for both Spain and Portugal over the entire post-treatment period. 
-
-Finally, use `plot_decomposition()` to understand how the Iberian exception affected the two CPI aggregations of your choice with respect to the broader category. Look into the left and middle panels of the resulting plot: Which of the outcomes, if any, can explain the effect on the third one better? Refer to the right panel to analyze whether the added effect of the two indices is approximately equal to the broader index. Are the results for Spain and Portugal similar? How do they differ?
+Next, use the resulting data frame to plot the results for each of these variables. You can also use `plot_decomposition()` to understand how the Iberian exception affected the two CPI aggregations of your choice with respect to the broader category; Which of the outcomes, if any, can explain the effect on the third one better?; Are the results for Spain and Portugal similar? How do they differ?
 
 ---

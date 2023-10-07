@@ -22,13 +22,14 @@
 #' @return ggplot object showing the effect of the IbEx on the overall inflation
 #' rate decomposed between energy and non-energy inflation.
 #'
-plot_decomposition = function(df, whole_var, sub_vars, treated_unit, plot_ci=FALSE) {
+plot_decomposition = function(df, sub_vars, whole_var, treated_unit, plot_ci=FALSE) {
   
   # Attach required packages
   library(readr)
   library(ggplot2)
   library(dplyr)
   library(lubridate)
+  library(scales)
 
   # Raise errors
   if (length(SUB_VARS) != 2) {
@@ -110,7 +111,7 @@ plot_decomposition = function(df, whole_var, sub_vars, treated_unit, plot_ci=FAL
     mutate(
       coicop =
         case_when(
-          coicop == "TOT_X_NRG" ~ "CP00xNRG",
+          coicop == "TOT_X_NRG" ~ "xNRG",
           coicop == "NNRG_IGD" ~ "IGDxNRG",
           TRUE ~ coicop
         )
@@ -144,89 +145,72 @@ plot_decomposition = function(df, whole_var, sub_vars, treated_unit, plot_ci=FAL
     )
   }
   
-  # Filter and process SC results
-  sc_results = df |>
-    filter(
-      treated == treated_unit &
-      date >= as.Date("2022-06-01") &
-      outcome %in% c(whole_var, sub_vars)  
-      )|>
-    mutate(
-      date = as.Date(date),
-      year = year(date)
-    ) |>
-    select(date, outcome, gaps, year)
   
-  # Merge SC results and weights datasets
-  sc_w = inner_join(sc_results, w_df, by = c("outcome", "year")) |>
-    mutate( w_gaps = w * gaps) |>
-    select(date, outcome, w_gaps)
-
-  ### Prepare data for plotting
-  # Define series names
-  series_names = NULL
-  for (v in 1:length(sub_vars)) {
-    series_names = c(
-      series_names, 
-      paste0(sub_vars[v], "(w)")
-      )
-    if (v == 1) {
-      last_series_name = paste0(sub_vars[v], "(w)")
-    } else {
-      last_series_name = paste(
-        last_series_name,
-        paste0(sub_vars[v], "(w)"),
-        sep = "+"
-      )
-    }
+  if (plot_ci) {
+    # Filter and process SC results
+    sc_results = df |>
+      filter(
+        treated == treated_unit &
+          date >= as.Date("2022-06-01") &
+          outcome %in% c(whole_var, sub_vars)  
+      )|>
+      mutate(
+        date = as.Date(date),
+        year = year(date)
+      ) |>
+      select(date, outcome, gaps, upper_ci, lower_ci, year)
+    # Merge SC results and weights datasets
+    sc_w = inner_join(sc_results, w_df, by = c("outcome", "year")) |>
+      mutate( 
+        w_gaps = w * gaps,
+        w_gaps_u = w * upper_ci,
+        w_gaps_l = w * lower_ci
+        ) |>
+      select(date, outcome, w_gaps, w_gaps_u, w_gaps_l)
+    
+  } else {
+    # Filter and process SC results
+    sc_results = df |>
+      filter(
+        treated == treated_unit &
+          date >= as.Date("2022-06-01") &
+          outcome %in% c(whole_var, sub_vars)  
+      )|>
+      mutate(
+        date = as.Date(date),
+        year = year(date)
+      ) |>
+      select(date, outcome, gaps, year)
+    # Merge SC results and weights datasets
+    sc_w = inner_join(sc_results, w_df, by = c("outcome", "year")) |>
+      mutate(w_gaps = w * gaps) |>
+      select(date, outcome, w_gaps)
   }
-  series_names = c(
-    series_names,
-    last_series_name
-  )
-  # Define subplot names
-  subplot_names = paste(whole_var, "vs", series_names)
+  
+  ### Prepare data for plotting
   # Define treatment date
   treatment = as.Date("2022-07-01")
   # Create dataframe with whole var
-  whole_var_w = sc_w |>
-    filter(outcome == whole_var)
-  # Create dataframe for plotting
-  d_plot = NULL
-  for (v in 1:(length(sub_vars)+1)) {
-    if (v == length(sub_vars)+1) {
-      subplot= sc_w |>
-        filter(outcome != whole_var) |>
-        group_by(date) |>
-        summarise_at(c("w_gaps"), sum) |>
-        ungroup() |>
-        mutate(outcome = series_names[v]) |>
-        rbind(whole_var_w) |>
-        mutate(subplot = subplot_names[v])
-    } else {
-      subplot = sc_w |>
-        filter(outcome ==  sub_vars[v]) |>
-        mutate(outcome = series_names[v]) |>
-        rbind(whole_var_w) |>
-        mutate(subplot = subplot_names[v])
-    }
-    d_plot = rbind(d_plot, subplot)
-  }
-  d_plot = d_plot |>
+  d_plot = sc_w |>
     filter(date >= treatment) |>
     mutate(
-      subplot = factor(
-        subplot,
-        levels = subplot_names
-      ),
+      outcome = case_when(
+        outcome == sub_vars[1] ~ paste0("w*Delta*", sub_vars[1]),
+        outcome == sub_vars[2] ~ paste0("(1-w)*Delta*", sub_vars[2]),
+        outcome == whole_var ~ paste0("Delta*", whole_var)
+        ),
       outcome = factor(
-        outcome,
-        levels = c(whole_var, series_names)
+        outcome, 
+        levels = c(
+          paste0("w*Delta*", sub_vars[1]),
+          paste0("(1-w)*Delta*", sub_vars[2]),
+          paste0("Delta*", whole_var)
+          )
+        )
       )
-    )
-
+      
   ### Plot
-
+  
   # Create plot
   plot = d_plot |>
     ggplot() +
@@ -238,7 +222,7 @@ plot_decomposition = function(df, whole_var, sub_vars, treated_unit, plot_ci=FAL
     {
       if (plot_ci == TRUE) {
         geom_ribbon(
-          aes(x = date, ymax = w_ate_u, ymin = w_ate_l, fill = outcome),
+          aes(x = date, ymax = w_gaps_u, ymin = w_gaps_l, fill = outcome),
           alpha = .25
         )
       }
@@ -247,10 +231,9 @@ plot_decomposition = function(df, whole_var, sub_vars, treated_unit, plot_ci=FAL
     scale_fill_manual(
       values =
         c(
-         "black",
          "dodgerblue3",
          "goldenrod",
-         "springgreen4"
+         "black"
         )
     ) +
     # Plot lines
@@ -259,18 +242,16 @@ plot_decomposition = function(df, whole_var, sub_vars, treated_unit, plot_ci=FAL
     scale_color_manual(
       values =
         c(
-           "black",
            "dodgerblue3",
            "goldenrod",
-           "springgreen4"
-        )
+           "black"
+        ),
+      labels = parse_format()
     ) +
     # Remove axis labels
-    labs(x = "", y = "") +
+    labs(x = "", y = paste("Effect of the IbEx on", whole_var)) +
     # Format x-axis labels
     scale_x_date(date_labels = "%b") +
-    # Create subplots
-    facet_wrap(~subplot) +
     # Customize theme
     theme_minimal(base_size = 15) +
     theme(

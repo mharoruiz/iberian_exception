@@ -11,23 +11,14 @@
 #' @param outcomes Matrix of outcomes to compute synthetic controls for.
 #' @param T0s  Matrix of sizes of pre-treatment periods. Must be same length
 #' as outcomes.
-#' @param T1_breaks Object of class "Date" or a vector containing "Date"
-#' class objects. Break points will be used to divide the post-treatment
-#' period into sub-periods and compute p-values across them. The post-
-#' treatment period ranges from  07/2022 to  06/2023 so T1_breaks must be
-#' within this range. For example, setting T1_breaks=as.Date("2022-12-01")
-#' will compute p-values for the sub-periods 07/2022-12/2022 and 01/2023-
-#' 06/2023.
-#' @param save_csv Boolean to save results as csv file. The name of the file
-#' will be set depending on the number of sub-periods and their length. For
-#' example, setting T1_breaks=as.Date("2022-12-01") will return a file named
-#' sc_inference_6_6.csv because this computes p-values for two sup-periods of
-#' 6 months each. Default: TRUE.
+#' @param method String indicating the inference method. Available options are
+#' "conformal" and "ttest". See scinference pacakge for details.
+#' @param save_csv Boolean to save results as csv file. Default: TRUE.
 #'
 #' @return Dataframe with p-values for the specified sub-periods given
 #' outcomes and T0s, either as a csv or as a output.
 #'
-inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
+inference_sc = function(outcomes, T0s, method, save_csv = TRUE) {
   
   # Attach required packages
   library(lubridate)
@@ -53,64 +44,18 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
   }
   for (out in outcomes) {
     current_T0 = T0s[which(outcomes == out)]
-    if ((out == "DAA" & current_T0 > 89) | (out != "DAA" & current_T0 > 114)) {
+    if ((out == "DAP" & current_T0 > 89) | (out != "DAP" & current_T0 > 114)) {
       stop(
         sprintf(
           "%s supports T0 up to %s. Got %s.",
           out,
-          ifelse(out == "DAA", "89", "114"),
+          ifelse(out == "DAP", "89", "114"),
           current_T0
         )
       )
     }
   }
-  if (!(is.null(T1_breaks))) {
-    if (!(inherits(T1_breaks, "Date"))) {
-      stop(
-        "T1_breaks must be objects of class 'Date'."
-      )
-    }
-    for (date in T1_breaks) {
-      date = as.Date(date, origin = "1970-01-01")
-      if (day(date) != 1) {
-        new_date = paste(
-          year(date),
-          ifelse(nchar(month(date)) == 1, paste0(0, month(date)), month(date)),
-          "01",
-          sep = "-"
-        )
-        T1_breaks[which(T1_breaks == date)] = as.Date(new_date)
-        warning(
-          sprintf(
-            "Changing %s to %s.\n",
-            date, new_date
-          ),
-          immediate. = TRUE
-        )
-      }
-    }
-    if (
-      sum(!(T1_breaks %in% seq(treatment_date, end_date, by = "month"))) != 0
-      ) {
-      stop(
-        sprintf(
-          "T1_breaks must be whitin %s and %s. Got %s",
-          treatment_date, end_date,
-          paste(
-            T1_breaks[
-              which(
-                !(T1_breaks %in% seq(treatment_date, end_date, by = "month"))
-                )
-              ],
-            collapse = ", "
-          )
-        )
-      )
-    }
-  }
 
-  # Remove duplicates
-  T1_breaks = unique(T1_breaks)
   # Define treated and control units
   treated_units = c("ES", "PT")
   control_units = c(
@@ -121,7 +66,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
 
   log_info("Loading data")
   # Import day-ahead price data
-  daa_df_raw = read_csv("02_data/day_ahead_price.csv", show_col_types = FALSE)
+  dap_df_raw = read_csv("02_data/day_ahead_price.csv", show_col_types = FALSE)
   # Import CPI at constant taxes
   if (file.exists("02_data/cpi_index.csv")) {
     hicp_df_raw = read_csv("02_data/cpi_index.csv", show_col_types = FALSE)
@@ -136,14 +81,14 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
     mutate(
       coicop =
         case_when(
-          coicop == "TOT_X_NRG" ~ "CP00xNRG",
+          coicop == "TOT_X_NRG" ~ "xNRG",
           coicop == "NNRG_IGD" ~ "IGDxNRG",
           TRUE ~ coicop
         )
     )
   not_supported = NULL
   for (out in outcomes) {
-    if (out != "DAA" & !(out %in% hicp_df_raw$coicop)) {
+    if (out != "DAP" & !(out %in% hicp_df_raw$coicop)) {
       not_supported = cbind(not_supported, out)
     }
   }
@@ -153,7 +98,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
         sprintf(
           "Outcome '%s' is not supported.\nSupported outcomes are: %s",
           paste(not_supported, collapse = ", "),
-          paste(c("DAA", unique(hicp_df_raw$coicop)), collapse = ", ")
+          paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ")
         )
       )
     } else {
@@ -161,16 +106,16 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
         sprintf(
           "Outcomes %s are not supported.\nSupported outcomes are: %s",
           paste(not_supported, collapse = ", "),
-          paste(c("DAA", unique(hicp_df_raw$coicop)), collapse = ", ")
+          paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ")
         )
       )
     }
   }
 
   # Preprocess day-ahead price data
-  daa_df = daa_df_raw |>
+  dap_df = dap_df_raw |>
     group_by(country) |>
-    filter(!any(is.na(DAA))) |>
+    filter(!any(is.na(DAP))) |>
     ungroup()
   # Preprocess CPI data
   hicp_df = hicp_df_raw |>
@@ -223,102 +168,92 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
       log_info(
         sprintf("  Outcome: %s - T0: %s months", out, T0)
       )
-      # Define dates to break T1 into sub-periods
-      date_breaks = c(treatment_date, T1_breaks, end_date)
 
-      # One iteration for each sub-period within T1
-      for (sp in 1:(length(date_breaks) - 1)) {
-        # Remove other treated unit from sample
-        if (out == "DAA") {
-          sc_df = daa_df |>
-            filter(
-              country != n_treated
-            )
-        } else {
-          sc_df = hicp_df |>
-            filter(
-              country != n_treated
-            )
-        }
-        # Remove observations in T1 outside of this sub-period
-        sc_df = sc_df |>
+      # Remove other treated unit from sample
+      if (out == "DAP") {
+        sc_df = dap_df |>
           filter(
-            country != n_treated &
-              (
-                post_treatment == 0 |
-                  (
-                    post_treatment == 1 &
-                      date > date_breaks[sp] &
-                      date <= date_breaks[(sp + 1)]
-                  )
-              )
+            country != n_treated & date != treatment_date
           )
+      } else {
+        sc_df = hicp_df |>
+          filter(
+            country != n_treated & date != treatment_date
+          )
+      }
 
-        # Define T1 propperties
-        T1_dates = unique(sc_df$date[sc_df$post_treatment == TRUE])
-        min_date = min(T1_dates)
-        max_date = max(T1_dates)
-        T1 = length(T1_dates)
-        if (sp == 1) suffix = T1 else suffix = paste(suffix, T1, sep = "_")
-        # Define total length of period
-        T01 = T0 + T1
-        # Extract outcome for treated unit from data
-        Y1 = sc_df |>
-          filter(country == tu) |>
-          arrange(date) |>
-          select(all_of(out)) |>
-          slice_tail(n = T01) |>
-          as.matrix() |>
-          unname()
-        # Extract outcome for control units from data
-        Y0 = sc_df |>
-          filter(country != tu) |>
-          select(date, country, all_of(out)) |>
-          arrange(date) |>
-          pivot_wider(names_from = country, values_from = all_of(out)) |>
-          select(-date) |>
-          slice_tail(n = T01) |>
-          select_if(~ !any(is.na(.))) |>
-          as.matrix() |>
-          unname()
-        log_info(
-          sprintf("  %s units in donor pool", dim(Y0)[2])
-          )
-        log_info(
-          sprintf(
-            "    T1.%s: %s %s",
-            sp,
-            length(T1_dates),
-            ifelse(length(T1_dates) > 1, "months", "month")
-          )
+      # Define T1 properties
+      T1_dates = unique(sc_df$date[sc_df$post_treatment == TRUE])
+      min_T1 = min(T1_dates)
+      max_T1= max(T1_dates)
+      T1 = length(T1_dates)
+      # Define total length of period
+      T01 = T0 + T1
+      # Extract outcome for treated unit from data
+      Y1 = sc_df |>
+        filter(country == tu) |>
+        arrange(date) |>
+        select({{out}}) |>
+        slice_tail(n = T01) |>
+        as.matrix() |>
+        unname()
+      # Extract outcome for control units from data
+      Y0 = sc_df |>
+        filter(country != tu) |>
+        select(date, country, {{out}}) |>
+        arrange(date) |>
+        pivot_wider(names_from = country, values_from = {{out}}) |>
+        select(-date) |>
+        slice_tail(n = T01) |>
+        select_if(~ !any(is.na(.))) |>
+        as.matrix() |>
+        unname()
+      log_info(
+      sprintf("  %s units in donor pool", dim(Y0)[2])
         )
-        # Estimate p-values
-        result = scinference(
-          Y1 = Y1,
-          Y0 = Y0,
-          T1 = T1,
-          T0 = T0,
-          inference_method = "conformal",
-          alpha = .1,
-          ci = FALSE,
-          theta0 = 0,
-          estimation_method = "sc",
-          permutation_method = "iid",
-          n_perm = 5000,
-          lsei_type = 2
-        )
+      # Estimate p-values
+      result = scinference(
+        Y1 = Y1,
+        Y0 = Y0,
+        T1 = T1,
+        T0 = T0,
+        inference_method = method,
+        alpha = .1,
+        ci = FALSE,
+        theta0 = 0,
+        estimation_method = "sc",
+        #permutation_method = "iid",
+        #n_perm = 5000,
+        lsei_type = 2
+      )
 
-        # Store results
+      # Store results
+      if (method == "conformal") {
         inference = data.frame(
-          p_val = result$p_val,
+          pval = result$p_val,
           T0 = T0,
           outcome = out,
           treated = tu,
-          from = min_date,
-          to = max_date
+          from = min_T1,
+          to = max_T1
         )
-        agg_inference = rbind(agg_inference, inference)
+        
+      } else if (method == "ttest") {
+        inference = data.frame(
+          att = result$att,
+          se = result$se,
+          lb = result$lb,
+          ub = result$ub,
+          T0 = T0,
+          outcome = out,
+          treated = tu,
+          from = min_T1,
+          to = max_T1
+        )
       }
+
+      agg_inference = rbind(agg_inference, inference)
+      
     }
   }
 
@@ -327,7 +262,7 @@ inference_sc = function(outcomes, T0s, T1_breaks = NULL, save_csv = TRUE) {
     if (!dir.exists("03_results")) dir.create("03_results")
     file_path = sprintf(
       "03_results/sc_inference_%s.csv",
-      suffix
+      method
     )
     log_info(
       sprintf(

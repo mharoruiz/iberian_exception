@@ -55,12 +55,12 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   }
   for (out in outcomes) {
     current_T0 = T0s[which(outcomes == out)]
-    if ((out == "DAA" & current_T0 > 89) | (out != "DAA" & current_T0 > 114)) {
+    if ((out == "DAP" & current_T0 > 89) | (out != "DAP" & current_T0 > 114)) {
       stop(
         sprintf(
           "%s supports T0 up to %s. Got %s.",
           out,
-          ifelse(out == "DAA", "89", "114"),
+          ifelse(out == "DAP", "89", "114"),
           current_T0
         )
       )
@@ -79,7 +79,7 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   
   log_info("Loading data")
   # Import day-ahead price data
-  daa_df_raw = read_csv("02_data/day_ahead_price.csv", show_col_types = FALSE)
+  dap_df_raw = read_csv("02_data/day_ahead_price.csv", show_col_types = FALSE)
   # Import CPI at constant taxes
   if (file.exists("02_data/cpi_index.csv")) {
     hicp_df_raw = read_csv("02_data/cpi_index.csv", show_col_types = FALSE) 
@@ -94,14 +94,14 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
     mutate(
       coicop =
         case_when(
-          coicop == "TOT_X_NRG" ~ "CP00xNRG",
+          coicop == "TOT_X_NRG" ~ "xNRG",
           coicop == "NNRG_IGD" ~ "IGDxNRG",
           TRUE ~ coicop
         )
     )
   not_supported = NULL
   for (out in outcomes) {
-    if (out != "DAA" & !(out %in% hicp_df_raw$coicop)) {
+    if (out != "DAP" & !(out %in% hicp_df_raw$coicop)) {
       not_supported = cbind(not_supported, out)
     }
   }
@@ -111,7 +111,7 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
         sprintf(
           "Outcome '%s' is not supported.\nSupported outcomes are: %s",
           paste(not_supported, collapse = ", "),
-          paste(c("DAA", unique(hicp_df_raw$coicop)), collapse = ", ")
+          paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ")
         )
       )
     } else {
@@ -119,16 +119,16 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
         sprintf(
           "Outcomes %s are not supported.\nSupported outcomes are: %s",
           paste(not_supported, collapse = ", "),
-          paste(c("DAA", unique(hicp_df_raw$coicop)), collapse = ", ")
+          paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ")
         )
       )
     }
   }
 
   # Preprocess day-ahead auction data
-  daa_df = daa_df_raw |>
+  dap_df = dap_df_raw |>
     group_by(country) |>
-    filter(!any(is.na(DAA))) |>
+    filter(!any(is.na(DAP))) |>
     ungroup()
   # Preprocess CPI data
   hicp_df = hicp_df_raw |>
@@ -176,9 +176,9 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
         sprintf("  Outcome: %s - T0: %s months", out, T0)
       )
       # Final data processing
-      if (out == "DAA") {
+      if (out == "DAP") {
         # Remove other treated unit from sample + units with inconsistent data
-        sc_df = daa_df |>
+        sc_df = dap_df |>
           filter(country != n_treated)
       } else {
         # Remove other treated unit from sample
@@ -199,16 +199,16 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
       Y1 = sc_df |>
         filter(country == tu) |>
         arrange(date) |>
-        select(all_of(out)) |>
+        select({{out}}) |>
         slice_tail(n = T01) |>
         as.matrix() |>
         unname()
       # Extract outcome for control units from data
       Y0 = sc_df |>
         filter(country != tu) |>
-        select(date, country, all_of(out)) |>
+        select(date, country, {{out}}) |>
         arrange(date) |>
-        pivot_wider(names_from = country, values_from = all_of(out)) |>
+        pivot_wider(names_from = country, values_from = {{out}}) |>
         select(-date) |>
         slice_tail(n = T01) |>
         select_if(~ !any(is.na(.))) |>
