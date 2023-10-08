@@ -89,7 +89,7 @@ Create a dataframe that summarizes the results for each input variable and treat
 
 **Challenge #2**
 
-The figure below shows different aggregations of CPI indices and the relationship between them. For example, NRG (energy CPI) and xNRG (all-items CPI excluding energy) make up CP00 (all-items CPI). Similarly, we know from `explore.R` that GD and SERV make up CP00. 
+The figure below shows different aggregations of CPI indices and the relationship between them. For example, NRG (energy CPI) and xNRG (all-items CPI excluding energy) make up CP00 (all-items CPI). Similarly, we know from `explore.R` that GD and SERV make up CP00.
 
 ![](.img/ibex_img_02.png)
 
