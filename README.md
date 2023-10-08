@@ -47,7 +47,7 @@ Unable to find image 'mharoruiz/ibex:0.1' locally
 0.1: Pulling from mharoruiz/ibex
 ```
 
-This process may take some time. However, subsequent executions of `docker run` will use a locally-saved image to run the container. When this happens, your command line should print messages indicating that the container is being initialized. You can now access the container by pointing your browser to `localhost:8787`. This will open a ready-to-use instance of RStudio. 
+This process may take some time. However, subsequent executions of `docker run` will use a locally saved image to run the container. When this happens, your command line should print messages indicating that the container is being initialized. You can now access the container by pointing your browser to `localhost:8787`. This will open a ready-to-use instance of RStudio. 
 
 Open `ibex/ibex.Rproj` in the RStudio session to load the project dependencies. The following message should appear in your R console:
 
@@ -65,7 +65,7 @@ source("~/ibex/main.R")
 
 Once `main.R` has successfully run, the figures and tables will be accessible as variables in your R environment, i.e. `fig_1`, `table_A1`. Additionally, if constant `SAVE_ANALYSIS=TRUE`, the figures and tables will be saved to `04_analysis/` as .png and .csv files.
 
-The runtime of the `main.R` is regulated by constant `PRC_STEP`, which is defined in line 21 of the script and determines the precision of the confidence intervals for the treatment effect. By default, `PRC_STEP=.1`, allowing for a relatively quick execution. Note that the results presented in the paper were obtained with `PRC_STEP=.001` (These results are saved to `03_results/sc_series_001.csv`). 
+The runtime of the `main.R` is regulated by constant `PRC_STEP`, which is defined in line 21 of the script and determines the precision of the confidence intervals for the treatment effect. By default, `PRC_STEP=.1`, which allows for a relatively quick execution. Note that the results presented in the paper were obtained with `PRC_STEP=.001` (These results are saved to `03_results/sc_series_001.csv`). 
 
 ## Exploration
 
@@ -75,17 +75,17 @@ Like `main.R`, `explore.R` begins defining a series of constants used throughout
 
 Moreover, `CONFIDENCE_INTERVALS=TRUE` and `PRC_STEP=.025`. This will result in more precise confidence intervals than the ones computed in `main.R`, where `PRC_STEP=.1`. The downside of more precise CIs is that it takes longer to compute them. You are encouraged to try different `PRC_STEP` values to figure out a good compromise between precision and runtime.
 
-The function `estimate_sc()` is called in line 42 to estimate the synthetic controls for each of the CPI indicators and pre-treatment period sizes defined above. This returns a dataframe called `sc_series_explo` which will be used for visualizing the resutls.
+The function `estimate_sc()` is called in line 42 to estimate the synthetic controls for each of the CPI indicators and pre-treatment period sizes defined above. This returns a dataframe called `sc_series_explo` which will be used for visualizing the results.
 
 Next, `explore.R` uses function `plot_results()` in lines 53 and 62 to plot the observed and synthetic series as well as the difference between them, for outcomes GD and SERV. If `SAVE_OUTPUT=TRUE`, the plots will be saved in `05_exploration/` as `fig_gd.png` and `fig_serv.png`. 
 
-The scrip also calls function `plot_decomposition()` in ines 74 and 84 to visualize the effect of the Iberian exception mechanism on overall CPI as a share of the effect on goods-only and services-only CPI. The resulting plots for Spain and Portugal are saved in `05_exploration/` as `fig_decomp_es.png` and `fig_decomp_pt.png`.
+The script also calls function `plot_decomposition()` in lines 74 and 84 to visualize the effect of the Iberian exception mechanism on overall CPI as a share of the effect on goods-only and services-only CPI. The resulting plots for Spain and Portugal are saved in `05_exploration/` as `fig_decomp_es.png` and `fig_decomp_pt.png`.
 
 ---
 
 **Challenge #1**
 
-Create a dataframe that summarizes the results for each input variable and treated country over the entire post-treatment period. The dataframe should  show estimates in absolute and percentage terms, as well as the change in inflation rate. Refer to lines 117-171 of explore.R for a walk through solution of this exercise. 
+Create a dataframe that summarizes the results for each input variable and treated country over the entire post-treatment period. The dataframe should  show estimates in absolute and percentage terms, as well as the change in the inflation rate. Refer to lines 117-171 of explore.R for a walk-through solution of this exercise. 
 
 **Challenge #2**
 
