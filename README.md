@@ -48,10 +48,10 @@ Unable to find image 'mharoruiz/ibex:0.1' locally
 ```
 
 This process may take some time. However, subsequent executions of `docker run` will use a locally saved image to run the container. When this happens, your command line should print messages indicating that the container is being initialized. You can now access the container by pointing your browser to `localhost:8787`. This will open a ready-to-use instance of RStudio. 
-
+∫
 Open `ibex/ibex.Rproj` in the RStudio session to load the project dependencies. The following message should appear in your R console:
 
-```R
+```r
 - Project '~/ibex' loaded. [renv 1.0.2]
 ```
 
@@ -59,7 +59,7 @@ Open `ibex/ibex.Rproj` in the RStudio session to load the project dependencies. 
 
 The script `ibex/main.R` replicates the figures and tables in Haro-Ruiz, M., Schult, C. & Wunder, C. (2023). Execute the script by pressing Cmd/Ctrl + Shift + S or using the following command:
 
-```R
+```r
 source("~/ibex/main.R")
 ```
 
