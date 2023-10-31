@@ -85,7 +85,7 @@ The script also calls function `plot_decomposition()` in lines 74 and 84 to visu
 
 **Challenge #1**
 
-Create a dataframe that summarizes the results for each input variable and treated country over the entire post-treatment period. The dataframe should  show estimates in absolute and percentage terms, as well as the change in the inflation rate. Refer to lines 117-171 of explore.R for a walk-through solution of this exercise. 
+Create a dataframe that summarizes the results for each input variable and treated country over the entire post-treatment period. The dataframe should  show estimates in absolute and percentage terms, as well as the change in the inflation rate. Refer to lines 117-170 of explore.R for a walk-through solution of this exercise. 
 
 **Challenge #2**
 

@@ -149,17 +149,15 @@ sc_inflation_explo = sc_series_explo |>
   filter(outcome %in% INPUT_VARS) |>
   group_by(outcome, treated) |>
   mutate(
-    synth = case_when(
-      date <= as.Date("2022-06-01") ~ obs,
-      TRUE ~ synth
+    obs_rate = (obs - lag(obs, n = 12L))/lag(obs, n = 12L)*100, 
+    synth_rate = case_when(
+      date > as.Date("2022-06-01") ~ (synth - lag(obs, n=12L))/lag(obs, n=12L)*100,
+      TRUE ~ (obs - lag(obs, n = 12L))/lag(obs, n = 12L)*100
     ),
-    obs = (obs - lag(obs, n = 12L))/lag(obs, n = 12L)*100, 
-    synth = (synth - lag(synth, n = 12L))/lag(synth, n = 12L)*100,
-    gaps = obs-synth
+    gaps_rate = obs_rate - synth_rate
   ) |>
   ungroup() |>
-  drop_na(obs) |>
-  select(date, obs, synth, gaps, outcome, treated)
+  select(date, obs_rate, synth_rate, gaps_rate, outcome, treated)
 
 # use sc_infaltion_explo to obtain the ATT in terms of inflation rate. Make sure
 # the format of the resulting dataframe is the same as att_rate, defined in line
@@ -169,4 +167,3 @@ sc_inflation_explo = sc_series_explo |>
 # and att_rate defined in main.R. The final step is to combine all three into a
 # single dataframe to display the results in terms of three different units. The
 # resulting table should be analogous to table_A1, defined in line 209 of main.R
-

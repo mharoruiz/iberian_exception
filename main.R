@@ -76,17 +76,15 @@ sc_inflation_rate = sc_series |>
   filter(outcome %in% CPI_VARS) |>
   group_by(outcome, treated) |>
   mutate(
-    synth = case_when(
-      date <= as.Date("2022-06-01") ~ obs,
-      TRUE ~ synth
+    obs_rate = (obs - lag(obs, n = 12L))/lag(obs, n = 12L)*100, 
+    synth_rate = case_when(
+      date > as.Date("2022-06-01") ~ (synth - lag(obs, n=12L))/lag(obs, n=12L)*100,
+      TRUE ~ (obs - lag(obs, n = 12L))/lag(obs, n = 12L)*100
     ),
-    obs = (obs - lag(obs, n = 12L))/lag(obs, n = 12L)*100, 
-    synth = (synth - lag(synth, n = 12L))/lag(synth, n = 12L)*100,
-    gaps = obs-synth
+    gaps_rate = obs_rate - synth_rate
   ) |>
   ungroup() |>
-  drop_na(obs) |>
-  select(date, obs, synth, gaps, outcome, treated)
+  select(date, obs_rate, synth_rate, gaps_rate, outcome, treated)
 
 ### Replicate figures and tables
 
@@ -190,8 +188,8 @@ att_pct = inner_join(
 att_rate_raw = sc_inflation_rate |>
   filter(date > as.Date("2022-06-01")) |>
   group_by(outcome, treated) |>
-  summarise_at("gaps", mean) |>
-  select(outcome, treated, att = gaps)
+  summarise_at("gaps_rate", mean) |>
+  select(outcome, treated, att = gaps_rate)
 att_rate_es = att_rate_raw |>
   filter(treated == "ES") |>
   select(-treated)
