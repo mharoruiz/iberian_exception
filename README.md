@@ -1,6 +1,6 @@
 # ibex
 
-A tool to explore the effect of the Iberian exception mechanism on inflation. It can be used to replicate the figures and tables in *Haro-Ruiz, M., Schult, C. & Wunder, C. (2023). The effects of the Iberian Exception mechanism on wholesale electricity prices and consumer inflation. A synthetic-controls approach*. Additionally, users can explore the effect of the intervention on a variety of inflation indicators.
+A tool to explore the effect of the Iberian exception mechanism on inflation. It can be used to replicate the figures and tables in **The effects of the Iberian Exception mechanism on wholesale electricity prices and consumer inflation. A synthetic-controls approach**. Additionally, users can explore the effect of the intervention on a variety of inflation indicators.
 
 ![](.img/ibex_img_01.png)
 
