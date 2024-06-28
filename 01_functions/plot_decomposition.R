@@ -41,7 +41,7 @@ plot_decomposition = function(df, sub_vars, whole_var, treated_unit, plot_ci=FAL
     "whole_var must of length 1."
   }
   expected_colnames = c(
-    "date", "outcome", "gaps", "treated"
+    "date", "outcome", "diff", "treated"
   )
   missing_colnames = !(expected_colnames %in% colnames(df))
   if (sum(missing_colnames) != 0) {
@@ -118,7 +118,7 @@ plot_decomposition = function(df, sub_vars, whole_var, treated_unit, plot_ci=FAL
     ) |>
     filter(geo == treated_unit) |>
     mutate(w = values * 0.001) |>
-    select(outcome = coicop, w, year = time)
+    select(outcome = coicop, w, year = TIME_PERIOD)
   
   # Raise errors
   if (sum(!(all_vars %in% unique(w_df$outcome))) != 0) {
@@ -158,15 +158,15 @@ plot_decomposition = function(df, sub_vars, whole_var, treated_unit, plot_ci=FAL
         date = as.Date(date),
         year = year(date)
       ) |>
-      select(date, outcome, gaps, upper_ci, lower_ci, year)
+      select(date, outcome, diff, upper_ci, lower_ci, year)
     # Merge SC results and weights datasets
     sc_w = inner_join(sc_results, w_df, by = c("outcome", "year")) |>
       mutate( 
-        w_gaps = w * gaps,
-        w_gaps_u = w * upper_ci,
-        w_gaps_l = w * lower_ci
+        w_diff = w * diff,
+        w_diff_u = w * upper_ci,
+        w_diff_l = w * lower_ci
         ) |>
-      select(date, outcome, w_gaps, w_gaps_u, w_gaps_l)
+      select(date, outcome, w_diff, w_diff_u, w_diff_l)
     
   } else {
     # Filter and process SC results
@@ -180,11 +180,11 @@ plot_decomposition = function(df, sub_vars, whole_var, treated_unit, plot_ci=FAL
         date = as.Date(date),
         year = year(date)
       ) |>
-      select(date, outcome, gaps, year)
+      select(date, outcome, diff, year)
     # Merge SC results and weights datasets
     sc_w = inner_join(sc_results, w_df, by = c("outcome", "year")) |>
-      mutate(w_gaps = w * gaps) |>
-      select(date, outcome, w_gaps)
+      mutate(w_diff = w * diff) |>
+      select(date, outcome, w_diff)
   }
   
   ### Prepare data for plotting
@@ -222,7 +222,7 @@ plot_decomposition = function(df, sub_vars, whole_var, treated_unit, plot_ci=FAL
     {
       if (plot_ci == TRUE) {
         geom_ribbon(
-          aes(x = date, ymax = w_gaps_u, ymin = w_gaps_l, fill = outcome),
+          aes(x = date, ymax = w_diff_u, ymin = w_diff_l, fill = outcome),
           alpha = .25
         )
       }
@@ -237,7 +237,7 @@ plot_decomposition = function(df, sub_vars, whole_var, treated_unit, plot_ci=FAL
         )
     ) +
     # Plot lines
-    geom_line(aes(x = date, y = w_gaps, color = outcome), linewidth = 1) +
+    geom_line(aes(x = date, y = w_diff, color = outcome), linewidth = 1) +
     # Customize line colors
     scale_color_manual(
       values =

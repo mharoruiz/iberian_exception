@@ -29,9 +29,9 @@ inference_sc = function(outcomes, T0s, method, save_csv = TRUE) {
   library(logger)
   library(scinference)
 
-  # Define treatment and end date
+  # Define treatment start and end dates
   treatment_date = as.Date("2022-06-01")
-  end_date = as.Date("2023-06-01")
+  end_date = as.Date("2023-12-01")
 
   # Raise errors
   if (length(outcomes) != length(T0s)) {
@@ -132,20 +132,21 @@ inference_sc = function(outcomes, T0s, method, save_csv = TRUE) {
         ),
       post_treatment =
         case_when(
-          time >= treatment_date ~ TRUE,
+          TIME_PERIOD >= treatment_date ~ TRUE,
           TRUE ~ FALSE
         )
     ) |>
     filter(
       donor_pool == TRUE &
         vars == TRUE &
-        time <= end_date
+        TIME_PERIOD <= end_date
     ) |>
     select(
-      date = time,
+      date = TIME_PERIOD,
       country = geo,
       outcome = coicop,
-      values, post_treatment
+      values, 
+      post_treatment
     ) |>
     pivot_wider(names_from = outcome, values_from = values) |>
     arrange(country, date)

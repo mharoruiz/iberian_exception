@@ -238,27 +238,6 @@
       ],
       "Hash": "9fe98599ca456d6552421db0d6772d8f"
     },
-    "broom": {
-      "Package": "broom",
-      "Version": "1.0.5",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "backports",
-        "dplyr",
-        "ellipsis",
-        "generics",
-        "glue",
-        "lifecycle",
-        "purrr",
-        "rlang",
-        "stringr",
-        "tibble",
-        "tidyr"
-      ],
-      "Hash": "fd25391c3c4f6ecf0fa95f1e6d15378c"
-    },
     "cellranger": {
       "Package": "cellranger",
       "Version": "1.1.0",
@@ -377,6 +356,28 @@
       ],
       "Hash": "511bacbfa153a15251166b463b4da4f9"
     },
+    "data.table": {
+      "Package": "data.table",
+      "Version": "1.15.4",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "methods"
+      ],
+      "Hash": "8ee9ac56ef633d0c7cab8b2ca87d683e"
+    },
+    "digest": {
+      "Package": "digest",
+      "Version": "0.6.35",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "utils"
+      ],
+      "Hash": "698ece7ba5a4fa4559e3d537e7ec3d31"
+    },
     "dplyr": {
       "Package": "dplyr",
       "Version": "1.1.2",
@@ -416,44 +417,35 @@
       ],
       "Hash": "1046cb48d06cb40c2900d8878f03a0fe"
     },
-    "ellipsis": {
-      "Package": "ellipsis",
-      "Version": "0.3.2",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "rlang"
-      ],
-      "Hash": "bb0eec2fe32e88d9e2836c2f73ea2077"
-    },
     "eurostat": {
       "Package": "eurostat",
-      "Version": "3.8.2",
+      "Version": "4.0.0",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
         "ISOweek",
         "R",
         "RefManageR",
-        "broom",
         "classInt",
         "countrycode",
         "curl",
+        "data.table",
+        "digest",
         "dplyr",
-        "httr",
+        "httr2",
         "jsonlite",
         "lubridate",
-        "methods",
         "rappdirs",
         "readr",
         "regions",
+        "rlang",
         "stringi",
         "stringr",
         "tibble",
-        "tidyr"
+        "tidyr",
+        "xml2"
       ],
-      "Hash": "c9c4433dee657159f082700903f6d305"
+      "Hash": "0c47aa277743a3410af9d211168ca0c7"
     },
     "fansi": {
       "Package": "fansi",
@@ -585,6 +577,27 @@
         "openssl"
       ],
       "Hash": "ac107251d9d9fd72f0ca8049988f1d7f"
+    },
+    "httr2": {
+      "Package": "httr2",
+      "Version": "1.0.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "R6",
+        "cli",
+        "curl",
+        "glue",
+        "lifecycle",
+        "magrittr",
+        "openssl",
+        "rappdirs",
+        "rlang",
+        "vctrs",
+        "withr"
+      ],
+      "Hash": "03d741c92fda96d98c3a3f22494e3b4a"
     },
     "isoband": {
       "Package": "isoband",

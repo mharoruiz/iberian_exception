@@ -21,7 +21,7 @@ plot_results = function(df, var, plot_ci=FALSE) {
 
   # Raise errors
   expected_colnames = c(
-    "date", "outcome", "obs", "synth", "gaps", "treated"
+    "date", "outcome", "obs", "synth", "diff", "treated"
   )
   missing_colnames = !(expected_colnames %in% colnames(df))
   if (sum(missing_colnames) != 0) {
@@ -113,13 +113,13 @@ plot_results = function(df, var, plot_ci=FALSE) {
     select(date, value, upper_ci, lower_ci, series, subplot, country, color)
   # Create dataframe with gap values only
   if (plot_ci) {
-    d_gaps = df |>
+    d_diff = df |>
       filter(outcome == var) |>
       mutate(
         date = as.Date(date),
-        value = gaps,
-        series = "Gaps",
-        subplot = "Gaps",
+        value = diff,
+        series = "Difference",
+        subplot = "Difference",
         country =
           case_when(
             treated == "ES" ~ "Spain",
@@ -129,15 +129,15 @@ plot_results = function(df, var, plot_ci=FALSE) {
       ) |>
       select(date, value, upper_ci, lower_ci, series, subplot, country, color)
   } else {
-    d_gaps = df |>
+    d_diff = df |>
       filter(outcome == var) |>
       mutate(
         date = as.Date(date),
-        value = gaps,
+        value = diff,
         upper_ci = NA,
         lower_ci = NA,
-        series = "Gaps",
-        subplot = "Gaps",
+        series = "Difference",
+        subplot = "Difference",
         country =
           case_when(
             treated == "ES" ~ "Spain",
@@ -148,7 +148,7 @@ plot_results = function(df, var, plot_ci=FALSE) {
       select(date, value, upper_ci, lower_ci, series, subplot, country, color)
   }
   # Merge all dataframes
-  d_plot = rbind(d_obs, d_synth, d_gaps) |>
+  d_plot = rbind(d_obs, d_synth, d_diff) |>
     mutate(
       color = factor(
         color, 
@@ -162,7 +162,7 @@ plot_results = function(df, var, plot_ci=FALSE) {
   # Define horizontal lines in gap plots
   hlines = data.frame(
     value = rep(0, 2),
-    subplot = rep("Gaps", 2)
+    subplot = rep("Difference", 2)
   )
   # Create plot
   plot = d_plot |>
@@ -175,7 +175,7 @@ plot_results = function(df, var, plot_ci=FALSE) {
     {
       if (plot_ci == TRUE) {
         geom_ribbon(
-          data = subset(d_plot, date >= treatment & series == "Gaps"),
+          data = subset(d_plot, date >= treatment & series == "Difference"),
           aes(x = date, ymin = lower_ci, ymax = upper_ci),
           fill = "aquamarine4", alpha = .5
         )
@@ -197,7 +197,7 @@ plot_results = function(df, var, plot_ci=FALSE) {
     labs(x = "", y = "") +
     # Create and arrange subplots
     facet_grid(
-      factor(subplot, levels = c(var, "Gaps"))
+      factor(subplot, levels = c(var, "Difference"))
       ~ factor(country, levels = c("Spain", "Portugal")),
       scales = "free_y",
       # independent="y",

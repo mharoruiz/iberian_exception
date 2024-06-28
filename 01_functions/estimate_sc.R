@@ -75,7 +75,7 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   )
   # Define treatment and end date
   treatment_date = as.Date("2022-06-01")
-  end_date = as.Date("2023-06-01")
+  end_date = as.Date("2023-12-01")
   
   log_info("Loading data")
   # Import day-ahead price data
@@ -145,16 +145,16 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
         ),
       post_treatment =
         case_when(
-          time >= treatment_date ~ TRUE,
+          TIME_PERIOD >= treatment_date ~ TRUE,
           TRUE ~ FALSE
         )
     ) |>
     filter(
       donor_pool == TRUE &
         vars == TRUE &
-        time <= end_date
+        TIME_PERIOD <= end_date
     ) |>
-    select(date = time, country = geo, outcome = coicop, values, post_treatment) |>
+    select(date = TIME_PERIOD, country = geo, outcome = coicop, values, post_treatment) |>
     pivot_wider(names_from = outcome, values_from = values) |>
     arrange(country, date)
   # Create empty data containers to store results
@@ -225,13 +225,13 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
         Y1 = Y1, Y0 = Y0,
         lsei_type = 2
       )
-      gaps = estimate$u.hat
+      diff = estimate$u.hat
       # Approximate range of CI from difference between observed and synthetic series
       if (compute_ci == TRUE) {
-        factor = mean(gaps[1:T0])/mean(gaps[T0+1:T1])
+        factor = mean(diff[1:T0])/mean(diff[T0+1:T1])
         decimal_plc = nchar(str_split(precision, "\\.")[[1]][2])
-        min_gap = round(min(gaps[T0+1:T1]), decimal_plc)
-        max_gap = round(max(gaps[T0+1:T1]), decimal_plc)
+        min_gap = round(min(diff[T0+1:T1]), decimal_plc)
+        max_gap = round(max(diff[T0+1:T1]), decimal_plc)
         gap_range = abs(max_gap - min_gap)
         grid = seq(
           from = min_gap - abs(min_gap * factor),
@@ -294,7 +294,7 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
         date = time_range,
         obs = Y1,
         synth = estimate$Y0.hat,
-        gaps = gaps,
+        diff = diff,
         upper_ci = if (compute_ci) c(rep(NA, T0), result$ub) else NA,
         lower_ci = if (compute_ci) c(rep(NA, T0), result$lb) else NA,
         T0 = T0,
