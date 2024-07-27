@@ -6,6 +6,9 @@ A tool to explore the effect of the Iberian exception mechanism on inflation. It
 
 ## Deployment
 
+You can run the {'main.R'} file directly, if all necessary R packages are installed. If some packages are missing you can run {'install_packages.R'} first. We encountered the issue that sometime the installation of the {'eurostat'} package did not work. We reinstalled R and RStudio. We know this solution is inconvenient. Therefore, we also provide the Docker container solution.
+
+
 ibex can be deployed in a Docker container. To do so, you must have [Docker](https://www.docker.com/) installed on your computer.
 
 Begin by cloning this repository from the command line:
@@ -33,6 +36,7 @@ The above command creates and runs a new container (`docker run`) from the image
 ---
 
 **Troubleshooting** 
+
 
 Depending on the command line in your computer, you may have to use `%cd%` instead of `$(pwd)`. If none of these methods work, you can substitute the source with the absolute path to the cloned repository in your local machine (something like `/Users/user/ibex` or `C:\Users\user\ibex`). 
 
