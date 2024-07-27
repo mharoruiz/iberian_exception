@@ -6,7 +6,7 @@ A tool to explore the effect of the Iberian exception mechanism on inflation. It
 
 ## Deployment
 
-You can run the {'main.R'} file directly, if all necessary R packages are installed. If some packages are missing you can run {'install_packages.R'} first. We encountered the issue that sometime the installation of the {'eurostat'} package did not work. We reinstalled R and RStudio. We know this solution is inconvenient. Therefore, we also provide the Docker container solution.
+You can run the `main.R` file directly, if all necessary R packages are installed. If some packages are missing you can run `install_packages.R` first. We encountered the issue that sometime the installation of the `eurostat` package did not work. We reinstalled R and RStudio. We know this solution is inconvenient. Therefore, we also provide the Docker container solution.
 
 
 ibex can be deployed in a Docker container. To do so, you must have [Docker](https://www.docker.com/) installed on your computer.
