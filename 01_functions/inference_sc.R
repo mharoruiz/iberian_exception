@@ -45,24 +45,16 @@ inference_sc = function(outcomes, T0s, method, save_csv = TRUE) {
   for (out in outcomes) {
     current_T0 = T0s[which(outcomes == out)]
     if ((out == "DAP" & current_T0 > 89) | (out != "DAP" & current_T0 > 114)) {
-      stop(
-        sprintf(
-          "%s supports T0 up to %s. Got %s.",
-          out,
-          ifelse(out == "DAP", "89", "114"),
-          current_T0
-        )
-      )
+      stop(sprintf("%s supports T0 up to %s. Got %s.", out, 
+                   ifelse(out == "DAP", "89", "114"), current_T0) )
     }
   }
 
   # Define treated and control units
   treated_units = c("ES", "PT")
-  control_units = c(
-    "AT", "BE", "BG", "CZ", "DE", "DK", "EE", "EL",
-    "FI", "HR", "HU", "IE", "IT", "LT", "LU", "LV",
-    "NL", "NO", "PL", "RO", "SE", "SI", "SK"
-  )
+  control_units = c( "AT", "BE", "BG", "CZ", "DE", "DK", "EE", "EL", "FI", "HR", 
+                     "HU", "IE", "IT", "LT", "LU", "LV", "NL", "NO", "PL", "RO", 
+                     "SE", "SI", "SK")
 
   log_info("Loading data")
   # Import day-ahead price data
@@ -78,14 +70,9 @@ inference_sc = function(outcomes, T0s, method, save_csv = TRUE) {
 
   # Raise errors
   hicp_df_raw = hicp_df_raw |>
-    mutate(
-      coicop =
-        case_when(
-          coicop == "TOT_X_NRG" ~ "xNRG",
-          coicop == "NNRG_IGD" ~ "IGDxNRG",
-          TRUE ~ coicop
-        )
-    )
+    mutate(coicop = case_when(coicop == "TOT_X_NRG" ~ "xNRG",
+                              coicop == "NNRG_IGD" ~ "IGDxNRG",
+                              TRUE ~ coicop) )
   not_supported = NULL
   for (out in outcomes) {
     if (out != "DAP" & !(out %in% hicp_df_raw$coicop)) {
@@ -94,21 +81,13 @@ inference_sc = function(outcomes, T0s, method, save_csv = TRUE) {
   }
   if (!(is.null(not_supported))) {
     if (length(not_supported) == 1) {
-      stop(
-        sprintf(
-          "Outcome '%s' is not supported.\nSupported outcomes are: %s",
-          paste(not_supported, collapse = ", "),
-          paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ")
-        )
-      )
+      stop(sprintf("Outcome '%s' is not supported.\nSupported outcomes are: %s",
+                   paste(not_supported, collapse = ", "),
+                   paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ")) )
     } else {
-      stop(
-        sprintf(
-          "Outcomes %s are not supported.\nSupported outcomes are: %s",
-          paste(not_supported, collapse = ", "),
-          paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ")
-        )
-      )
+      stop(sprintf("Outcomes %s are not supported.\nSupported outcomes are: %s",
+                   paste(not_supported, collapse = ", "),
+                   paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ")) )
     }
   }
 
@@ -120,34 +99,18 @@ inference_sc = function(outcomes, T0s, method, save_csv = TRUE) {
   # Preprocess CPI data
   hicp_df = hicp_df_raw |>
     mutate(
-      donor_pool =
-        case_when(
-          geo %in% treated_units | geo %in% control_units ~ TRUE,
-          TRUE ~ FALSE
-        ),
-      vars =
-        case_when(
-          coicop %in% outcomes ~ TRUE,
-          TRUE ~ FALSE
-        ),
-      post_treatment =
-        case_when(
-          TIME_PERIOD >= treatment_date ~ TRUE,
-          TRUE ~ FALSE
-        )
+      donor_pool = case_when(
+        geo %in% treated_units | geo %in% control_units ~ TRUE,
+        TRUE ~ FALSE
+      ),
+      vars = case_when(coicop %in% outcomes ~ TRUE,
+                       TRUE ~ FALSE),
+      post_treatment = case_when(TIME_PERIOD >= treatment_date ~ TRUE,
+                                 TRUE ~ FALSE)
     ) |>
-    filter(
-      donor_pool == TRUE &
-        vars == TRUE &
-        TIME_PERIOD <= end_date
-    ) |>
-    select(
-      date = TIME_PERIOD,
-      country = geo,
-      outcome = coicop,
-      values, 
-      post_treatment
-    ) |>
+    filter(donor_pool == TRUE & vars == TRUE & TIME_PERIOD <= end_date) |>
+    select(date = TIME_PERIOD, country = geo, outcome = coicop, values, 
+           post_treatment) |>
     pivot_wider(names_from = outcome, values_from = values) |>
     arrange(country, date)
   
@@ -166,21 +129,15 @@ inference_sc = function(outcomes, T0s, method, save_csv = TRUE) {
       out = outcomes[i]
       # Define length of pre-treatment period
       T0 = T0s[i]
-      log_info(
-        sprintf("  Outcome: %s - T0: %s months", out, T0)
-      )
+      log_info(sprintf("  Outcome: %s - T0: %s months", out, T0))
 
       # Remove other treated unit from sample
       if (out == "DAP") {
         sc_df = dap_df |>
-          filter(
-            country != n_treated & date != treatment_date
-          )
+          filter(country != n_treated & date != treatment_date)
       } else {
         sc_df = hicp_df |>
-          filter(
-            country != n_treated & date != treatment_date
-          )
+          filter(country != n_treated & date != treatment_date)
       }
 
       # Define T1 properties
@@ -209,48 +166,21 @@ inference_sc = function(outcomes, T0s, method, save_csv = TRUE) {
         select_if(~ !any(is.na(.))) |>
         as.matrix() |>
         unname()
-      log_info(
-      sprintf("  %s units in donor pool", dim(Y0)[2])
-        )
+      log_info(sprintf("  %s units in donor pool", dim(Y0)[2]))
       # Estimate p-values
-      result = scinference(
-        Y1 = Y1,
-        Y0 = Y0,
-        T1 = T1,
-        T0 = T0,
-        inference_method = method,
-        alpha = .1,
-        ci = FALSE,
-        theta0 = 0,
-        estimation_method = "sc",
-        #permutation_method = "iid",
-        #n_perm = 5000,
-        lsei_type = 2
-      )
+      result = scinference(Y1 = Y1, Y0 = Y0, T1 = T1, T0 = T0, 
+                           inference_method = method, alpha = .1, ci = FALSE, 
+                           theta0 = 0, estimation_method = "sc", lsei_type = 2)
 
       # Store results
       if (method == "conformal") {
-        inference = data.frame(
-          pval = result$p_val,
-          T0 = T0,
-          outcome = out,
-          treated = tu,
-          from = min_T1,
-          to = max_T1
-        )
+        inference = data.frame(pval = result$p_val, T0 = T0, outcome = out, 
+                               treated = tu, from = min_T1, to = max_T1)
         
       } else if (method == "ttest") {
-        inference = data.frame(
-          att = result$att,
-          se = result$se,
-          lb = result$lb,
-          ub = result$ub,
-          T0 = T0,
-          outcome = out,
-          treated = tu,
-          from = min_T1,
-          to = max_T1
-        )
+        inference = data.frame(att = result$att, se = result$se, lb = result$lb, 
+                               ub = result$ub, T0 = T0, outcome = out, 
+                               treated = tu, from = min_T1, to = max_T1)
       }
 
       agg_inference = rbind(agg_inference, inference)
@@ -261,16 +191,8 @@ inference_sc = function(outcomes, T0s, method, save_csv = TRUE) {
   # Return results as saved csv or dataframe
   if (save_csv) {
     if (!dir.exists("03_results")) dir.create("03_results")
-    file_path = sprintf(
-      "03_results/sc_inference_%s.csv",
-      method
-    )
-    log_info(
-      sprintf(
-        "Saving results to %s",
-        file_path
-      )
-    )
+    file_path = sprintf("03_results/sc_inference_%s.csv", method)
+    log_info(sprintf("Saving results to %s", file_path))
     write_csv(agg_inference, file_path)
   } else {
     return(agg_inference)

@@ -17,8 +17,9 @@ WHOLE_VAR = "CP00"
 CPI_VARS = c(SUB_VARS, WHOLE_VAR)
 INPUT_VARS = c("DAP", CPI_VARS)
 PRE_TREATMENT_PERIODS = c(89, 108, 108, 108)
-CONFIDENCE_INTERVALS = TRUE
-if (CONFIDENCE_INTERVALS) PRC_STEP = .1 # Define step size for confidence interval grid-search
+CONFIDENCE_INTERVALS = FALSE
+# Define step size for confidence interval grid-search
+PRC_STEP = if (CONFIDENCE_INTERVALS) .1 else NA
 SAVE_RESULTS = TRUE
 SAVE_ANALYSIS = TRUE
 
@@ -45,8 +46,8 @@ invisible(
 estimate_sc(
   outcomes = INPUT_VARS,
   T0s = PRE_TREATMENT_PERIODS,
-  precision = PRC_STEP,
   compute_ci = CONFIDENCE_INTERVALS,
+  precision = PRC_STEP,
   save_csv = SAVE_RESULTS
 )
 # Conduct inference on estimates

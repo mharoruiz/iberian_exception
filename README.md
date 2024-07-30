@@ -6,10 +6,15 @@ A tool to explore the effect of the Iberian exception mechanism on inflation. It
 
 ## Deployment
 
-You can run the `main.R` file directly, if all necessary R packages are installed. If some packages are missing you can run `install_packages.R` first. We encountered the issue that sometime the installation of the `eurostat` package did not work. We reinstalled R and RStudio. We know this solution is inconvenient. Therefore, we also provide the Docker container solution.
+The are two options to execute ibex; either locally or via a Docker container. 
 
+### Locally
 
-ibex can be deployed in a Docker container. To do so, you must have [Docker](https://www.docker.com/) installed on your computer.
+To run the tool locally, clone the repository and make sure that all the necessary R packages are installed. To do so, you may run `install_packages.R` before executing `main.R`. This option is likely to result in issues due to conflicting R versions and package versions. 
+
+### Docker
+
+As an alternative, ibex can be deployed in a Docker container. To do so, you must have [Docker](https://www.docker.com/) installed on your computer.
 
 Begin by cloning this repository from the command line:
 
@@ -52,7 +57,7 @@ Unable to find image 'mharoruiz/ibex:0.1' locally
 ```
 
 This process may take some time. However, subsequent executions of `docker run` will use a locally saved image to run the container. When this happens, your command line should print messages indicating that the container is being initialized. You can now access the container by pointing your browser to `localhost:8787`. This will open a ready-to-use instance of RStudio. 
-∫
+
 Open `ibex/ibex.Rproj` in the RStudio session to load the project dependencies. The following message should appear in your R console:
 
 ```r
@@ -69,7 +74,7 @@ source("~/ibex/main.R")
 
 Once `main.R` has successfully run, the figures and tables will be accessible as variables in your R environment, i.e. `fig_1`, `table_A1`. Additionally, if constant `SAVE_ANALYSIS=TRUE`, the figures and tables will be saved to `04_analysis/` as .png and .csv files.
 
-The runtime of the `main.R` is regulated by constant `PRC_STEP`, which is defined in line 21 of the script and determines the precision of the confidence intervals for the treatment effect. By default, `PRC_STEP=.1`, which allows for a relatively quick execution. Note that the results presented in the paper were obtained with `PRC_STEP=.001` (These results are saved to `03_results/sc_series_001.csv`). 
+The runtime of the `main.R` depends on constant `PRC_STEP`, which is defined in line 22 of the script and determines the precision of the confidence intervals for the treatment effect. By default, `PRC_STEP=.1`, which allows for a relatively quick execution. Note that the results presented in the paper were obtained with `PRC_STEP=.001` (These results are saved to `03_results/sc_series_001.csv`). 
 
 ## Exploration
 

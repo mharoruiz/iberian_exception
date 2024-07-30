@@ -7,15 +7,16 @@
 #'
 #' The effect of the intervention is estimated via synthetic controls for
 #' Spain and Portugal given outcome variables and length of pre-treatment
-#' periods.
+#' periods. Additionally, the function returns the optimized weights assigned 
+#' to each country in the donor pool of control units.
 #'
 #' @param outcomes Matrix of outcomes to compute synthetic controls for.
 #' @param T0s Matrix of sizes of pre-treatment periods. Must be same length
 #' as outcomes.
-#' @param precision Float between 0 and 1 which defines the step of the grid-
-#' search space to find confidence intervals.
 #' @param compute_ci Boolean to compute 90 %confidence intervals or not. If
 #' set to TRUE, run-time will increase significantly. Default: FALSE.
+#' @param precision Float between 0 and 1 which defines the step of the grid-
+#' search space to find confidence intervals.
 #' @param save_csv Boolean to save results as csv file. The name of the file
 #' will be set depending on the precision. For example, setting precision=.01
 #' will return a file named sc_series_01.csv. Default: TRUE.
@@ -23,7 +24,7 @@
 #' @return Dataframe with synthetic and observed series for the given
 #' outcomes and T0s, either as a csv or as a output.
 #'
-estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
+estimate_sc = function(outcomes, T0s, compute_ci = FALSE, precision, save_csv = TRUE) {
   
   # Attach required packages and functions
   library(readr)
@@ -45,34 +46,25 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
       )
     )
   }
-  if ((!(is.numeric(precision))) | (!(precision > 0 & precision < 1))) {
-    stop(
-      sprintf(
-        "precision must be a number between 0 and 1. Got %s.",
-        precision
+  if (compute_ci) {
+    if ((!(is.numeric(precision))) | (!(precision > 0 & precision < 1))) {
+      stop(
+        sprintf("precision must be a number between 0 and 1. Got %s.", precision)
       )
-    )
+    }
   }
   for (out in outcomes) {
     current_T0 = T0s[which(outcomes == out)]
     if ((out == "DAP" & current_T0 > 89) | (out != "DAP" & current_T0 > 114)) {
-      stop(
-        sprintf(
-          "%s supports T0 up to %s. Got %s.",
-          out,
-          ifelse(out == "DAP", "89", "114"),
-          current_T0
-        )
-      )
+      stop(sprintf("%s supports T0 up to %s. Got %s.", out, 
+                   ifelse(out == "DAP", "89", "114"), current_T0) )
     }
   }
   # Define treated and control units
   treated_units = c("ES", "PT")
-  control_units = c(
-    "AT", "BE", "BG", "CZ", "DE", "DK", "EE", "EL",
-    "FI", "HR", "HU", "IE", "IT", "LT", "LU", "LV",
-    "NL", "NO", "PL", "RO", "SE", "SI", "SK"
-  )
+  control_units = c("AT", "BE", "BG", "CZ", "DE", "DK", "EE", "EL", "FI", "HR",
+                    "HU", "IE", "IT", "LT", "LU", "LV", "NL", "NO", "PL", "RO", 
+                    "SE", "SI", "SK")
   # Define treatment and end date
   treatment_date = as.Date("2022-06-01")
   end_date = as.Date("2023-12-01")
@@ -91,14 +83,9 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   
   # Raise errors
   hicp_df_raw = hicp_df_raw |>
-    mutate(
-      coicop =
-        case_when(
-          coicop == "TOT_X_NRG" ~ "xNRG",
-          coicop == "NNRG_IGD" ~ "IGDxNRG",
-          TRUE ~ coicop
-        )
-    )
+    mutate(coicop = case_when(coicop == "TOT_X_NRG" ~ "xNRG",
+                              coicop == "NNRG_IGD" ~ "IGDxNRG",
+                              TRUE ~ coicop) )
   not_supported = NULL
   for (out in outcomes) {
     if (out != "DAP" & !(out %in% hicp_df_raw$coicop)) {
@@ -108,19 +95,15 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   if (!(is.null(not_supported))) {
     if (length(not_supported) == 1) {
       stop(
-        sprintf(
-          "Outcome '%s' is not supported.\nSupported outcomes are: %s",
-          paste(not_supported, collapse = ", "),
-          paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ")
-        )
+        sprintf("Outcome '%s' is not supported.\nSupported outcomes are: %s",
+                paste(not_supported, collapse = ", "),
+                paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ") )
       )
     } else {
       stop(
-        sprintf(
-          "Outcomes %s are not supported.\nSupported outcomes are: %s",
-          paste(not_supported, collapse = ", "),
-          paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ")
-        )
+        sprintf("Outcomes %s are not supported.\nSupported outcomes are: %s",
+                paste(not_supported, collapse = ", "),
+                paste(c("DAP", unique(hicp_df_raw$coicop)), collapse = ", ") )
       )
     }
   }
@@ -133,32 +116,27 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
   # Preprocess CPI data
   hicp_df = hicp_df_raw |>
     mutate(
-      donor_pool =
-        case_when(
-          geo %in% treated_units | geo %in% control_units ~ TRUE,
-          TRUE ~ FALSE
+      donor_pool = case_when(
+        geo %in% treated_units | geo %in% control_units ~ TRUE,
+        TRUE ~ FALSE
         ),
-      vars =
-        case_when(
-          coicop %in% outcomes ~ TRUE,
-          TRUE ~ FALSE
+      vars = case_when(
+        coicop %in% outcomes ~ TRUE,
+        TRUE ~ FALSE
         ),
-      post_treatment =
-        case_when(
-          TIME_PERIOD >= treatment_date ~ TRUE,
-          TRUE ~ FALSE
+      post_treatment = case_when(
+        TIME_PERIOD >= treatment_date ~ TRUE,
+        TRUE ~ FALSE
         )
     ) |>
-    filter(
-      donor_pool == TRUE &
-        vars == TRUE &
-        TIME_PERIOD <= end_date
-    ) |>
-    select(date = TIME_PERIOD, country = geo, outcome = coicop, values, post_treatment) |>
+    filter(donor_pool == TRUE & vars == TRUE & TIME_PERIOD <= end_date) |>
+    select(date = TIME_PERIOD, country = geo, outcome = coicop, values, 
+           post_treatment) |>
     pivot_wider(names_from = outcome, values_from = values) |>
     arrange(country, date)
   # Create empty data containers to store results
-  agg_series = NULL
+  agg.series = NULL
+  agg.weights = NULL
 
   # One iteration for each treated unit
   for (tu in treated_units) {
@@ -172,9 +150,7 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
       out = outcomes[i]
       # Define length of pre-treatment period
       T0 = T0s[i]
-      log_info(
-        sprintf("  Outcome: %s - T0: %s months", out, T0)
-      )
+      log_info(sprintf("  Outcome: %s - T0: %s months", out, T0))
       # Final data processing
       if (out == "DAP") {
         # Remove other treated unit from sample + units with inconsistent data
@@ -212,20 +188,13 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
         select(-date) |>
         slice_tail(n = T01) |>
         select_if(~ !any(is.na(.))) |>
-        as.matrix() |>
-        unname()
-      log_info(
-        sprintf("  %s units in donor pool", dim(Y0)[2])
-      )
+        as.matrix()
+      log_info(sprintf("  %s units in donor pool", dim(Y0)[2]))
       # Estimate synthetic controls
       y1 = Y1[1:T0, ]
       y0 = Y0[1:T0, ]
-      estimate = sc(
-        y1 = y1, y0 = y0,
-        Y1 = Y1, Y0 = Y0,
-        lsei_type = 2
-      )
-      diff = estimate$u.hat
+      estimate = sc(y1 = y1, y0 = y0, Y1 = Y1, Y0 = Y0, lsei_type = 2)
+      diff = unname(estimate$u.hat)
       # Approximate range of CI from difference between observed and synthetic series
       if (compute_ci == TRUE) {
         factor = mean(diff[1:T0])/mean(diff[T0+1:T1])
@@ -233,54 +202,36 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
         min_gap = round(min(diff[T0+1:T1]), decimal_plc)
         max_gap = round(max(diff[T0+1:T1]), decimal_plc)
         gap_range = abs(max_gap - min_gap)
-        grid = seq(
-          from = min_gap - abs(min_gap * factor),
-          to = max_gap + abs(max_gap * factor),
-          by = precision
-        )
+        grid = seq(from = min_gap - abs(min_gap * factor),
+                   to = max_gap + abs(max_gap * factor),
+                   by = precision)
       }
       # Estimate CI
       if (compute_ci) log_info("    Searching CI...")
       ci_found = FALSE
       while (!ci_found) {
-        result = scinference(
-          Y1 = Y1,
-          Y0 = Y0,
-          T1 = T1,
-          T0 = T0,
-          inference_method = "conformal",
-          alpha = .1,
-          ci = compute_ci,
-          theta0 = 0,
-          estimation_method = "sc",
-          permutation_method = "iid",
-          n_perm = 5000,
-          ci_grid = grid,
-          lsei_type = 2
-        )
-        # Update grid as libraryd or continue
+        result = scinference(Y1 = Y1, Y0 = Y0, T1 = T1,  T0 = T0, 
+                             inference_method = "conformal", alpha = .1, 
+                             ci = compute_ci, theta0 = 0, 
+                             estimation_method = "sc", 
+                             permutation_method = "iid", n_perm = 5000, 
+                             ci_grid = grid, lsei_type = 2)
+        # Update grid or continue
         if (compute_ci) {
           if (min(grid) %in% result$lb & max(grid) %in% result$ub) {
             log_info("      Both bounds updated")
-            grid = seq(
-              from = round(min(grid) - gap_range*.33, decimal_plc),
-              to = round(max(grid) + gap_range*.33, decimal_plc),
-              by = precision
-            )
+            grid = seq(from = round(min(grid) - gap_range*.33, decimal_plc),
+                       to = round(max(grid) + gap_range*.33, decimal_plc),
+                       by = precision)
           } else if (max(grid) %in% result$ub) {
             log_info("      Upper bound updated")
-            grid = seq(
-              from = min(grid),
-              to = round(max(grid) + gap_range*.33, decimal_plc),
-              by = precision
-            )
+            grid = seq(from = min(grid),
+                       to = round(max(grid) + gap_range*.33, decimal_plc),
+                       by = precision)
           } else if (min(grid) %in% result$lb) {
             log_info("      Lower bound updated")
-            grid = seq(
-              from = round(min(grid) - gap_range*.33, decimal_plc),
-              to = max(grid),
-              by = precision
-            )
+            grid = seq(from = round(min(grid) - gap_range*.33, decimal_plc),
+                       to = max(grid), by = precision)
           } else {
             log_info("    CI found!")
             ci_found = TRUE
@@ -290,18 +241,17 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
         }
       }
       # Store results
-      series = data.frame(
-        date = time_range,
-        obs = Y1,
-        synth = estimate$Y0.hat,
-        diff = diff,
-        upper_ci = if (compute_ci) c(rep(NA, T0), result$ub) else NA,
-        lower_ci = if (compute_ci) c(rep(NA, T0), result$lb) else NA,
-        T0 = T0,
-        outcome = out,
-        treated = tu
-      )
-      agg_series = rbind(agg_series, series)
+      series = data.frame(date = time_range, obs = Y1, synth = estimate$Y0.hat, 
+                          diff = diff, 
+                          upper_ci = if (compute_ci) c(rep(NA, T0), result$ub) else NA, 
+                          lower_ci = if (compute_ci) c(rep(NA, T0), result$lb) else NA, 
+                          T0 = T0, outcome = out, treated = tu)
+      agg.series = rbind(agg.series, series)
+      # Store optimised weights
+      weights = matrix(nrow = 1, ncol = (length(colnames(Y0)) + 2) )
+      colnames(weights) = c("treated", "outcome", colnames(Y0))
+      weights[1,] = c(tu, out, estimate$w.hat)
+      agg.weights = bind_rows(agg.weights, data.frame(weights))
     }
   }
 
@@ -313,19 +263,13 @@ estimate_sc = function(outcomes, T0s, precision, compute_ci, save_csv) {
     } else {
       suffix = ""
     }
-    file_path = sprintf(
-      "03_results/sc_series%s.csv",
-      suffix
-    )
-    log_info(
-      sprintf(
-        "Saving results to %s",
-        file_path
-      )
-    )
-    write_csv(agg_series, file_path)
+    file_path = sprintf("03_results/sc_series%s.csv", suffix)
+    log_info(sprintf("Saving results to %s", file_path))
+    write_csv(agg.series, file_path)
+    log_info("Saving weights to 03_results/sc_weights.csv")
+    write_csv(agg.weights, "03_results/sc_weights.csv")
   } else {
-    return(agg_series)
+    return(agg.series, agg.weights)
   }
   
 }

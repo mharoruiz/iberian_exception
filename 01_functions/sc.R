@@ -42,12 +42,6 @@ sc = function(y1, y0, Y1, Y0, lsei_type) {
   # Compute differences between synthetic and observed series
   u.hat = Y1 - Y0.hat
 
-  return(
-    list(
-      u.hat = u.hat,
-      w.hat = w.hat,
-      Y0.hat = Y0.hat
-    )
-  )
+  return(list(u.hat = u.hat, w.hat = w.hat, Y0.hat = Y0.hat))
   
 }
