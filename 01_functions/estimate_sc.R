@@ -1,7 +1,7 @@
 #'
 #' Estimation of synthetic control units
 #'
-#' @description This function reproduces the results from Haro-Ruiz, M., Schult 
+#' @description This function reproduces the results from Haro Ruiz, M., Schult 
 #' C., and Wunder, C. (2024), which estimates the effects of the Iberian 
 #' Exception mechanism on different price outcomes.
 #'
@@ -31,7 +31,7 @@
 #' of the file will be set depending on the infer_method variable. For example, 
 #' setting infer_method="ttest" will return a file names sc_inference_ttest.csv.
 #' Default: TRUE.
-#' @param save_weighTs Boolean to save optimized weights as a csv. 
+#' @param save_weights Boolean to save optimized weights as a csv. 
 #' Default: FALSE.
 #'
 #' @return Dataframe with synthetic control series, inference results and 

@@ -1,6 +1,6 @@
 # ibex
 
-A tool to explore the effect of the Iberian exception mechanism on inflation. It can be used to replicate the results of **Haro Ruiz, M, Schult, C., Wunder, C. (2023). The effects of the Iberian Exception mechanism on wholesale electricity prices and consumer inflation. A synthetic-controls approach**.
+A tool to explore the effect of the Iberian exception mechanism on inflation. It can be used to replicate the results of **Haro Ruiz, M, Schult, C., Wunder, C. (2024). The effects of the Iberian Exception mechanism on wholesale electricity prices and consumer inflation. A synthetic-controls approach**.
 
 
 ## Deployment
@@ -65,7 +65,7 @@ Open `ibex/ibex.Rproj` in the RStudio session to load the project dependencies. 
 
 ## Replication
 
-The script `ibex/main.R` replicates the results in Haro Ruiz, M., Schult, C. & Wunder, C. (2023). Execute the script by pressing Cmd/Ctrl + Shift + S or using the following command:
+The script `ibex/main.R` replicates the results in Haro Ruiz, M., Schult, C. & Wunder, C. (2024). Execute the script by pressing Cmd/Ctrl + Shift + S or using the following command:
 
 ```r
 source("~/ibex/main.R")

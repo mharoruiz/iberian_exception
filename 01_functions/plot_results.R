@@ -1,8 +1,8 @@
 #'
 #' Effect plots
 #'
-#' @description This function replicates figures 1, 2, 3, B1, B2, B3, and C1 in
-#' Haro-Ruiz, M., Schult C., and Wunder, C. (2024), which shows the effects of 
+#' @description This function replicates figures 1, 2, 3, and 4 in
+#' Haro Ruiz, M., Schult C., and Wunder, C. (2024), which shows the effects of 
 #' the Iberian exception mechanism on different price outcomes for Spain and
 #' Portugal.
 #'
