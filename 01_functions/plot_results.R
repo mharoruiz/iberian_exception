@@ -2,7 +2,7 @@
 #' Effect plots
 #'
 #' @description This function replicates figures 1, 2, 3, B1, B2, B3, and C1 in
-#' Haro-Ruiz, M., Schult C., and Wunder, C. (2023), which shows the effects of 
+#' Haro-Ruiz, M., Schult C., and Wunder, C. (2024), which shows the effects of 
 #' the Iberian exception mechanism on different price outcomes for Spain and
 #' Portugal.
 #'
@@ -19,6 +19,7 @@ plot_results = function(df, var, plot_ci = FALSE) {
   # Attach required packages
   library(ggplot2)
   library(dplyr)
+  library(lubridate)
 
   # Raise errors
   expected_colnames = c("date", "outcome", "obs", "synth", "diff", "treated")
@@ -95,9 +96,11 @@ plot_results = function(df, var, plot_ci = FALSE) {
   ### Plot
 
   # Define treatment date
-  treatment = as.Date("2022-06-01")
+  T0 = unique(df$T0[df$outcome == var])
+  treatment = min(d_plot$date) %m+% months(T0)
   # Define horizontal lines in gap plots
   hlines = data.frame(value = rep(0, 2), subplot = rep("Difference", 2))
+  
   # Create plot
   plot = d_plot |>
     ggplot() +
@@ -126,9 +129,7 @@ plot_results = function(df, var, plot_ci = FALSE) {
     # Create and arrange subplots
     facet_grid(factor(subplot, levels = c(var, "Difference"))
                ~ factor(country, levels = c("Spain", "Portugal")),
-               scales = "free_y",
-               # independent="y",
-               switch = "y" ) +
+               scales = "free_y", switch = "y" ) +
     # Customize theme
     theme_minimal(base_size = 15) +
     theme(strip.placement="out",

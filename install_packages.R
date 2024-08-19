@@ -1,8 +1,8 @@
 rm(list=ls())
 
 # install necessary packages to execute main.R
-packages <- c("readr", "stringr", "logger", "tidyr",
-               "dplyr", "ggplot2", "lubridate", "eurostat")
+packages <- c("readr", "stringr", "logger", "tidyr","dplyr", "ggplot2", 
+              "eurostat", "scinference", "lubridate", "scales", "limSolve")
 
 # load packages
 lapply(packages, function(x) {
